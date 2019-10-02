@@ -152,23 +152,31 @@ void calculaDistCasas(const vector<Casa> &cidade, vector<vector<int> > &distCasa
 
 double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const vector<Casa> &cidade, 
              const vector<vector<int> > &distCasas, int W){ 
-    
-    /*W_xi = Peso ao sair da cidade W_xi
-    Pode ser calculado percorrendo o percurso de cada ladrao no vetor ladroes.*/
+    /*Funcao objetivo considera que o caminho de cada mochileiro possui IMPLICITAMENTE a saida da Origem
+    e a chegada na Origem. Ex: Um caminho 0->1->2->0 sera representado no vector caminho por {1,2} */
     double resultado=0;
     
     for(int i=0;i<ladroes.size();i++){ // Para cada mochileiro...
-    
         int pesoDaMochila=0;
         
         //Calculo da primeira parte da funcao objetivo para o ladrao em questao: Lucro!
         
         double somatorioParte2=0;
-        for(int j=0;j<ladroes[i].caminho.size();j++){
-            
-            if(j<=ladroes[i].caminho.size()-1){
+
+        //Da origem ate o primeiro...
+
+        double parteSuperiorFracaoInicial = distCasas[0][ladroes[i].caminho[0]];
+        double parteInferiorFracaoInicial = vMax- (( ( vMax-vMin ) / W ) * pesoDaMochila );
+        somatorioParte2+= parteSuperiorFracaoInicial/parteInferiorFracaoInicial; //Da ultima casa ate a origem
+        
+
+        int tamanhoCaminhoLadrao= ladroes[i].caminho.size();
+
+        for(int j=0;j<tamanhoCaminhoLadrao;j++){
+
+            if(j<tamanhoCaminhoLadrao-1){
                 double parteSuperiorFracao = distCasas[ladroes[i].caminho[j]][ladroes[i].caminho[j+1]];
-                double parteInferiorFracao= vMax- ( ( ( vMax-vMin ) / W ) * pesoDaMochila );
+                double parteInferiorFracao= vMax- ( ( ( vMax-vMin ) / W*(1.0) ) * pesoDaMochila );
                 somatorioParte2+= parteSuperiorFracao/parteInferiorFracao ;
             }
             
@@ -180,10 +188,12 @@ double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const 
                 pesoDaMochila+= itens[qualItem].peso;
                 
             }
-            
+
         }
-        double parteSuperiorFracaoFinal= distCasas[ladroes[i].caminho[ladroes[i].caminho.size()-1]][0];
-        double parteInferiorFracaoFinal= vMax- (( ( vMax-vMin ) / W ) * pesoDaMochila );
+        //Do ultimo ate a origem...
+        double parteSuperiorFracaoFinal= distCasas[ladroes[i].caminho[tamanhoCaminhoLadrao-1]][0];
+
+        double parteInferiorFracaoFinal= vMax-( ((vMax-vMin )/ W) * pesoDaMochila) ;
         somatorioParte2+= parteSuperiorFracaoFinal/parteInferiorFracaoFinal; //Da ultima casa ate a origem
         
         resultado+= (-1)*aluguel*somatorioParte2;
@@ -340,8 +350,9 @@ int main( int argc, char** argv ){
   	
   	//imprimiCasas(cidade);
   	//imprimiItens(itens);
-
-  	vector<vector<int> > distCasas(dimensao,vector<int>(dimensao,0));
+	
+	//Criando com dimensao+1 posicoes devido ao 0 ser a origem. Comecamos do 1.
+  	vector<vector<int> > distCasas(dimensao+1,vector<int>(dimensao+1,0));
   	
   	calculaDistCasas(cidade,distCasas);
 
