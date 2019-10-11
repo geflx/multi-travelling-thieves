@@ -33,84 +33,77 @@ struct Item{
 
 // Guarda as informacoes referente a cada Cidade incluindo os que estão nela
 struct Casa{
-    
     int idCasa; // Indice da casa
     long double x; // Posição do indice x no plano cartesiano 
     long double y; // Posição do indice y no plano cartesiano
     vector<Item> itemCasa; // Todos os itens que estão na casa 
     vector<bool> visited; // Verifica se o item daquela cidade já foi roubado por algum ladrão
-    
 };
 
 int dist(Casa a, Casa b){
     return ceil( sqrt(((a.x-b.x)*(a.x-b.x)) + ((a.y-b.y)*(a.y-b.y))) );
 }
 
-
 //Imprime instancia para o visualizador
-void imprimeInstancia( const vector<Mochileiro> &ladroes, const vector<Casa> &cidade){
+void imprimeInstancia( const vector<Mochileiro> &ladroes, const vector<Casa> &cidade, ofstream& saida){
 
-ofstream saida("saida.txt");
+	for(int i=0; i<ladroes.size(); i++){
+	    
+	    saida<<"[";
+	    
+	    for(int j=0; j<ladroes[i].caminho.size(); j++){
+	        
+	        //Imprime as cidades que o ladrao "i" passou
+	        saida<< ladroes[i].caminho[j]+1;
+	        
+	        if( j!= ladroes[i].caminho.size()-1 ){
+	            saida<<",";
+	        }
+	        
+	    }
+	    
+	    saida<<"]\n";
+	    saida<<"["; 
+	    
+	    //Contando quantas virgulas teremos que imprimir
+	    
+	    int virgulas=0;
 
-for(int i=0; i<ladroes.size(); i++){
-    
-    saida<<"[";
-    for(int j=0; j<ladroes[i].caminho.size(); j++){
-        
-        //Imprime as cidades que o ladrao "i" passou
-        saida<< ladroes[i].caminho[j];
-        
-        if( j!= ladroes[i].caminho.size()-1 ){
-            saida<<",";
-        }
-        
-    }
-    saida<<"]\n";
-    
-    saida<<"["; 
-    
-    //Contando quantas virgulas teremos que imprimir
-    
-    int virgulas=0;
-
-    for(int j=0; j< ladroes[i].mochila.size(); j++){
-        if(ladroes[i].mochila[j].size()!=0){
-            virgulas++;
-        }
-    }
-    virgulas-=1;
-    
-    for(int j=0; j< ladroes[i].mochila.size(); j++){
-        
-        if(ladroes[i].mochila[j].size()==0){ // Sem itens roubados pelo ladrao i na cidade j
-            continue;
-        }
-        
-        for(int k=0; k< ladroes[i].mochila[j].size(); k++){
-            saida<< ladroes[i].mochila[j][k];
-            
-            if(k!=ladroes[i].mochila[j].size()-1)
-                saida<<",";
-        }
-        
-        if( virgulas>0 ){ //Se ainda posso imprimir uma virgula
-            virgulas--;
-            saida<<",";
-        }
-            
-    }
-    
-    saida<<"]\n";
-}
-saida.close();
+	    for(int j=0; j< ladroes[i].mochila.size(); j++){
+	        if(ladroes[i].mochila[j].size()!=0){
+	            virgulas++;
+	        }
+	    }
+	    virgulas-=1;
+	    
+	    for(int j=0; j< ladroes[i].mochila.size(); j++){
+	        
+	        if(ladroes[i].mochila[j].size()==0){ // Sem itens roubados pelo ladrao i na cidade j
+	            continue;
+	        }
+	        
+	        for(int k=0; k< ladroes[i].mochila[j].size(); k++){
+	            saida<< ladroes[i].mochila[j][k]+1;
+	            
+	            if(k!=ladroes[i].mochila[j].size()-1)
+	                saida<<",";
+	        }
+	        
+	        if( virgulas>0 ){ //Se ainda posso imprimir uma virgula
+	            virgulas--;
+	            saida<<",";
+	      	}       
+	    }
+	    saida<<"]\n";
+	}
 }
 
 void imprimir( vector<Mochileiro>&ladroes, string &instancia){
 
-    cout << "Instancia : " << instancia << endl; 
+    cout << "Instancia : " << instancia << "\n"; 
     for(int i=0;i<ladroes.size();i++){
         
-        cout << "O Mochileiro " << i+1 << " pegou " << ladroes[i].caminho.size()-1  << " itens e passou nas cidades: \n";
+        cout << "\nO Mochileiro " << i+1 << " pegou " << ladroes[i].caminho.size()-1  << " itens e passou nas cidades: \n";
 
         for(int j=0; j<ladroes[i].caminho.size()-1 ;j++){
             cout << '[' << ladroes[i].caminho[j]+1 << "] ";
@@ -129,7 +122,7 @@ void imprimir( vector<Mochileiro>&ladroes, string &instancia){
             
         }
         
-        cout << "\n";
+        cout << "\n\n";
     }
 }
 
@@ -151,6 +144,13 @@ void imprimiItens(vector<Item> &itens){
 	for(int i=0;i<nItem;i++)
 		cout << itens[i].index+1 << " " << itens[i].lucro << " " << itens[i].peso << " " << itens[i].ondeTo << endl;
 	cout << endl;
+}
+
+void limpeza(vector<Casa> &cidade){
+
+	for(int i=0;i<dimensao;i++)
+		for(int j=0;j<cidade[i].visited.size();j++)
+				cidade[i].visited[j] = false;
 }
 
 void leitura(){
@@ -219,7 +219,7 @@ void calculaDistCasas(const vector<Casa> &cidade, vector<vector<int> > &distCasa
 }
 
 double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const vector<Casa> &cidade, 
-             const vector<vector<int> > &distCasas, int W, int i){ 
+    const vector<vector<int> > &distCasas, int W, int i){ 
     /*Funcao objetivo considera que o caminho de cada mochileiro possui IMPLICITAMENTE a saida da Origem
     e a chegada na Origem. Ex: Um caminho 0->1->2->0 sera representado no vector caminho por {1,2} */
     double resultado=0;
@@ -267,7 +267,7 @@ double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const 
 }
 
 double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const vector<Casa> &cidade, 
-             const vector<vector<int> > &distCasas, int W){ 
+    const vector<vector<int> > &distCasas, int W){ 
     
     double resultado=0;
     
@@ -278,7 +278,7 @@ double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const 
 }
 
 void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, 
-				int cap, const vector<pair<double,pair<int,int > > > &custoBeneficio, vector<vector<int>> &distCasas){
+	int cap, const vector<pair<double,pair<int,int > > > &custoBeneficio, vector<vector<int>> &distCasas){
     
     int contIteracao=0;
     bool coloqueiAlguem= true;
@@ -329,7 +329,7 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
                 
                 ladroes[qualMochileiro].mochila[city].push_back( item );
 
-                cout<<"CidadeEscolhida: "<<city<<". ItemIndex roubado: "<<item<<" durante a iteracao "<<contIteracao<<".\n";
+                //cout<<"CidadeEscolhida: "<<city<<". ItemIndex roubado: "<<item<<" durante a iteracao "<<contIteracao<<".\n";
                 
                 cidade[ city ].visited[ escolhida.second.second ] = true; //VISITED: ID Item artificial
                 coloqueiAlguem = true;
@@ -371,12 +371,11 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
             if(!cB.empty()){
                 
                 pair< double,pair<int,int> > escolhido = cB.top();
-
-
+                
                 int city = escolhido.second.first;
                 int item = cidade[city].itemCasa[escolhido.second.second].index;
 
-                cout<<"CidadeEscolhida: "<<city<<". ItemIndex roubado: "<<item<<" durante a iteracao "<<contIteracao<<".\n";
+                //cout<<"CidadeEscolhida: "<<city<<". ItemIndex roubado: "<<item<<" durante a iteracao "<<contIteracao<<".\n";
 
                 casaVisitada[ city ] = true;
 
@@ -392,14 +391,14 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
                 cidade[ city ].visited[ escolhido.second.second ] = true;
                 
                 coloqueiAlguem = true;
-            }            
+	        }            
             contIteracao++;
         }
     }
     return;
 }
 
-double greedyOne(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas ){
+double greedyOne(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas){
     
     int cap = capacidade/(ladroes.size());
     
@@ -428,8 +427,8 @@ double greedyTwo(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
 double greedyThree(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes){
 }
 
-double greedy( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, string &tipo, 
-				vector<vector<int>> &distCasas){
+double greedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, string &tipo, 
+	vector<vector<int>> &distCasas){
     
     if(tipo == " bounded strongly corr"){
         return greedyOne(cidade, itens, ladroes, distCasas);
@@ -440,6 +439,35 @@ double greedy( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &la
     else if(tipo == " uncorrelated, similar weights"){ // Depois colocar Three
     	return greedyOne(cidade, itens, ladroes, distCasas);
     }
+}
+
+void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> distCasas, int i, ofstream& saida){
+		
+		int nMochileiros =i;
+
+		vector<Mochileiro> ladroes(nMochileiros);
+
+		double greedyResult = greedy(cidade, itens, ladroes, tipo, distCasas);	
+  	
+	  	cout<<"\nUtilizando " << i << " ladrao(ladroes) \n\nO resultado do greedy: "<< greedyResult << "\n";
+
+	  	imprimir(ladroes, instancia);
+
+	    //cout << "\n\nImprimindo a instancia: \n";
+	    
+	    imprimeInstancia(ladroes,cidade,saida);
+	    
+	    limpeza(cidade);
+}
+
+void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> distCasas, ofstream& saida){
+
+	for(int i=1;i<5;i++){
+		mttp(cidade,itens,distCasas,i,saida);
+		saida << "\n";
+	}
+
+	mttp(cidade,itens,distCasas,5,saida);	
 }
 
 int main( int argc, char** argv ){
@@ -453,29 +481,24 @@ int main( int argc, char** argv ){
   	leitura3(itens);
 	
     prenche(cidade, itens);	
-
-    nMochileiros = atoi(argv[1]);
 	
-	vector<Mochileiro> ladroes(nMochileiros);
-
-  	
   	//imprimiCasas(cidade);
   	//imprimiItens(itens);
 	
 	//Criando com dimensao+1 posicoes devido ao 0 ser a origem. Comecamos do 1.
     // vector<vector<int> > distCasas(dimensao+1,vector<int>(dimensao+1,0)); Acredito que o +1 nao seja necessario
+  	
   	vector<vector<int> > distCasas(dimensao,vector<int>(dimensao,0));
   	
   	calculaDistCasas(cidade,distCasas);
 
-    double greedyResult = greedy(cidade, itens, ladroes, tipo, distCasas);
-  	cout<<"Resultado do greedy: "<<greedyResult<<endl;
+  	ofstream saida("saida.txt");
 
-  	imprimir(ladroes, instancia);
+  	if(atoi(argv[1]) == 6 )
+  		mttp(cidade, itens, distCasas,saida);
+    else
+    	mttp(cidade, itens, distCasas, atoi(argv[1]),saida);
 
-    cout<<"\n\nImprimindo a instancia: \n";
-    imprimeInstancia(ladroes,cidade);
-    
-  	
-}   
+    saida.close();
 
+}  
