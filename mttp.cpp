@@ -329,7 +329,7 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
                     
                     contcB++;
 
-                    if(!cidade[j].visited[k] && cidade[j].itemCasa[k].peso <= cap-ladroes[qualMochileiro].pesoMochila ){
+                    if(/*!cidade[j].visited[k] &&*/ cidade[j].itemCasa[k].peso <= cap-ladroes[qualMochileiro].pesoMochila ){
                         
                         cB.push(make_pair(custoBeneficio[contcB].first/( 1 /distCasas[0][custoBeneficio[contcB].second.first]+1 ) /*CB / DIST */, 
                                 make_pair(custoBeneficio[contcB].second.first /*ID CIDADE*/, custoBeneficio[contcB].second.second /*ID ITEM ARTIFICIAL. de 0 a numItens*/)));        
@@ -379,7 +379,7 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
                     
                     contcB++;
                     
-                    if(!cidade[j].visited[k] && cidade[j].itemCasa[k].peso <= cap-ladroes[qualMochileiro].pesoMochila ){
+                    if(/*!cidade[j].visited[k] &&*/ cidade[j].itemCasa[k].peso <= cap-ladroes[qualMochileiro].pesoMochila ){
                         
                         int ultimaVitima = ladroes[qualMochileiro].caminho[ladroes[qualMochileiro].caminho.size()-1];
                         
@@ -446,7 +446,7 @@ double greedyOne(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
         for(int j=1;j<cidade.size();j++){ //Ignoramos a origem pois nao possui itens
             
             for(int k=0;k<cidade[j].itemCasa.size();k++){                
-                double calculoCb= (cidade[j].itemCasa[k].lucro) / (cidade[j].itemCasa[k].peso) ;
+                double calculoCb= (cidade[j].itemCasa[k].lucro) / ((cidade[j].itemCasa[k].peso)*(cidade[j].itemCasa[k].peso)) ;
                 // custoBeneficio.push_back(make_pair( -1* calculoCb,make_pair( j, k ))); //Gambiarra: CB.second.first == cidade , .second= item
                 custoBeneficio.push_back(make_pair( -1* calculoCb,make_pair( j, k ))); //Gambiarra: CB.second.first == cidade , .second= item
 
@@ -592,21 +592,30 @@ bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
         double atualFObj = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
         
         if( atualFObj > melhorFObj){
-           // cout << atualFObj << " " << melhorFObj << endl;
+            //cout << atualFObj << " " << melhorFObj << endl;
             melhorVertice = i+1;
             melhorFObj = atualFObj; 
             melhorou = true;
         } 
     }
-    
+
     for(int i=ladroes[qualMochileiro].caminho.size()-2;i>=verticeCaminha;i--)
         swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]);
     
+
     if(melhorou){
-        for(int i=verticeCaminha; i<melhorVertice-verticeCaminha ;i++)
+        for(int i=verticeCaminha; i<melhorVertice-verticeCaminha+1;i++)
             swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i+1]);
+
+        //     for(int i=0;i<ladroes[qualMochileiro].caminho.size();i++){
+        //         cout << ladroes[qualMochileiro].caminho[i] << " ";
+        //     }
+        //     cout << endl;
+
+        // cout << fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro) << endl; 
         return true;
     }
+
     return false;
 }
 
@@ -614,11 +623,14 @@ bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
     
     int cont = 0;
     for(int i=0;i<nMochileiros;i++){
+        //cout << "\nladrao  " << i << endl;
         int qtdd = ladroes[i].caminho.size()/5;
-        for(int j=0;j<qtdd;j++)
-            if(moveUmaCidade(cidade,itens, ladroes, distCasas,i,j)) cont++;
-    }
 
+        for(int j=0;j<qtdd;j++){
+            //cout << "\nqttd  " << j << endl;  
+            if(moveUmaCidade(cidade,itens, ladroes, distCasas,i,j)) cont++;
+        }
+    }
     return cont;
 }
  
@@ -666,14 +678,19 @@ bool trocaDuasCidades(vector<Casa> &cidade, vector<Item> &itens, vector<Mochilei
 void VNS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas){
 
     while(true){
-        cout << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
-        trocaDuasCidades(cidade,itens,ladroes,distCasas);
-        cout << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
-        moveUmaCidade(cidade,itens,ladroes,distCasas);
-        cout << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
+        int cont=0;
+        cout << "Comeca com :" << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
+        
+        if(trocaDuasCidades(cidade,itens,ladroes,distCasas))        cont++;
+        
+        if(moveUmaCidade(cidade,itens,ladroes,distCasas))           cont++;
+        
         removeItem(cidade,itens,ladroes,distCasas,capacidade);
-        cout << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
-        break;
+        
+        cout << "Termina com :" << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
+        
+        if(cont<1)
+            break;
     }
 }
 
