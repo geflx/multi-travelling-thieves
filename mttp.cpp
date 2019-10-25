@@ -44,6 +44,7 @@ int dist(Casa a, Casa b){
     return ceil( sqrt(((a.x-b.x)*(a.x-b.x)) + ((a.y-b.y)*(a.y-b.y))) );
 }
 
+
 //Imprime instancia para o visualizador
 void imprimeInstancia( const vector<Mochileiro> &ladroes, const vector<Casa> &cidade, ofstream& saida){
 
@@ -226,18 +227,28 @@ double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const 
     int pesoDaMochila=0;
         
     //Calculo da primeira parte da funcao objetivo para o ladrao em questao: Lucro!
-    
+
     double somatorioParte2=0;
 
     //Da origem ate o primeiro...
     double parteSuperiorFracaoInicial = distCasas[0][ladroes[i].caminho[0]];
-    double parteInferiorFracaoInicial = vMax- (( ( vMax-vMin ) / W ) * pesoDaMochila );
+    double parteInferiorFracaoInicial = vMax- (( ( vMax-vMin ) / W*(1.0) ) * pesoDaMochila );
     
     somatorioParte2+= parteSuperiorFracaoInicial/parteInferiorFracaoInicial; //Da ultima casa ate a origem
 
     int tamanhoCaminhoLadrao= ladroes[i].caminho.size();
 
     for(int j=0;j<tamanhoCaminhoLadrao;j++){
+
+        int qualCidade= ladroes[i].caminho[ j ];
+
+        for(int k=0;k<ladroes[i].mochila[ qualCidade ].size();k++){
+            
+            int qualItem = ladroes[i].mochila[qualCidade][k];
+            
+            resultado+= itens[qualItem].lucro;
+            pesoDaMochila+= itens[qualItem].peso;
+        }
 
         if(j<tamanhoCaminhoLadrao-1){
            
@@ -246,23 +257,19 @@ double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const 
            
             somatorioParte2+= parteSuperiorFracao/parteInferiorFracao ;
         }
+
         
-        for(int k=0;k<ladroes[i].mochila[j].size();k++){
-            
-            int qualItem = ladroes[i].mochila[j][k];
-            
-            resultado+= itens[qualItem].lucro;
-            pesoDaMochila+= itens[qualItem].peso;
-        }
 
     }
+    /* Casa [ 0 ] e a origem */
     //Do ultimo ate a origem...
     double parteSuperiorFracaoFinal= distCasas[ladroes[i].caminho[tamanhoCaminhoLadrao-1]][0];
 
-    double parteInferiorFracaoFinal= vMax-( ((vMax-vMin )/ W) * pesoDaMochila) ;
+    double parteInferiorFracaoFinal= vMax-( ((vMax-vMin )/ W*(1.0)) * pesoDaMochila) ;
     somatorioParte2+= parteSuperiorFracaoFinal/parteInferiorFracaoFinal; //Da ultima casa ate a origem
     
-    resultado-= aluguel*somatorioParte2;
+
+    resultado-= (aluguel*somatorioParte2) ;
     return resultado;
 }
 
@@ -483,16 +490,78 @@ void mochila(vector<Casa> &cidade,vector<Item> &itens,int capacidadeDaMochila, i
     }
 }
 
+void removeItem( vector<Mochileiro> &ladroes, const vector<Item> &itens, vector<Casa> &cidade, 
+                  const vector<vector<int> > &distCasas, int W){
+
+    //Encontra o melhor item removido para cada mochileiro
+    for(int i=0; i< ladroes.size(); i++){
+
+        pair<int,int> bItemCidade;
+        double melhoriaFObj= -200000000;
+        double antigaFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
+        double atualFObj= antigaFObj;
+
+        for(int j=0; j<ladroes[i].caminho.size(); j++){
+
+            int qualCidade = ladroes[i].caminho[j];
+            int numItensPossuidos= ladroes[i].mochila[ qualCidade ].size();
+
+            for(int k=0; k< numItensPossuidos; k++){
+
+
+                int removi= ladroes[i].mochila[ qualCidade ][ k ];
+                swap( ladroes[i].mochila[ qualCidade ][ k ], ladroes[i].mochila[ qualCidade ][ numItensPossuidos-1 ] );
+                ladroes[i].mochila[ qualCidade ].pop_back();
+
+
+                double tempFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
+
+                if(tempFObj >= atualFObj){
+                    bItemCidade = make_pair( removi, qualCidade );
+                    atualFObj = tempFObj;
+                }
+                ladroes[i].mochila[ qualCidade ].push_back( removi );
+
+            }
+
+            if(atualFObj > antigaFObj){
+                for(int k=0; k<ladroes[i].mochila[ bItemCidade.second ].size(); k++){
+                    if( ladroes[i].mochila[ bItemCidade.second ][k] == bItemCidade.first){
+                        swap( ladroes[i].mochila[ bItemCidade.second ][k], ladroes[i].mochila[ bItemCidade.second ][ ladroes[i].mochila[ bItemCidade.second ].size()-1] );
+                        ladroes[i].mochila[ bItemCidade.second ].pop_back();
+                        break;
+                    }
+                }
+
+                for(int k=0; k< cidade[ bItemCidade.second ].itemCasa.size();k++){
+
+                    if( cidade[ bItemCidade.second ].itemCasa[k].index == bItemCidade.first ){
+                        cidade[ bItemCidade.second ].visited[k]=false;
+                        break;
+                    }
+
+                }
+            }
+        }
+    }
+}
+
 void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> distCasas, int i, ofstream& saida){
 		
-		int nMochileiros =i;
+		nMochileiros =i;
 
 		vector<Mochileiro> ladroes(nMochileiros);
 
 		double greedyResult = greedy(cidade, itens, ladroes, tipo, distCasas);	
   	
-	  	cout<<"\nUtilizando " << i << " ladrao(ladroes) \n\nO resultado do greedy: "<< greedyResult << "\n";
+	  	
+        removeItem( ladroes, itens, cidade, distCasas, capacidade);
 
+        cout<<"\nUtilizando " << i << " ladrao(ladroes) \n\nO resultado do greedy: "<< greedyResult << "\n";
+
+        double resVNS2 = fObj( ladroes, itens, cidade, distCasas, capacidade );
+
+        cout<<"Busca VNS2_RemoveItem: "<<resVNS2<<endl;
 	  	imprimir(ladroes, instancia);
 
 	    //cout << "\n\nImprimindo a instancia: \n";
@@ -511,7 +580,6 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> distCas
 
 	mttp(cidade,itens,distCasas,5,saida);	
 }
-
 int main( int argc, char** argv ){
 
   	leitura();
@@ -542,6 +610,7 @@ int main( int argc, char** argv ){
   		mttp(cidade, itens, distCasas,saida);
     else
     	mttp(cidade, itens, distCasas, atoi(argv[1]),saida);
+
 
     saida.close();
 
