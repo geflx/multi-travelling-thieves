@@ -284,6 +284,23 @@ double fObj(const vector<Mochileiro> &ladroes, const vector<Item> &itens, const 
     return resultado; 
 }
 
+//Olha se uma cidade aparece duas vezes na rota de um mochileiro
+void consertaRota(vector<Mochileiro> &ladroes, int k){
+
+    for(int i=0;i<ladroes[k].caminho.size();i++){ // Para cada cidade daquela caminho
+        for(int j=i+1;j<ladroes[k].caminho.size();j++){ // Ve se a cidade se repete na sua frente
+            if(ladroes[k].caminho[i] == ladroes[k].caminho[j]){ // Se repetir ela faz swap com a proxima cidade 
+                                                            // até deixar ela na ultima posicao , depois faz um pop_back
+                for(int l=j;ladroes[k].caminho.size()-1;l++)
+                    swap(ladroes[k].caminho[l],ladroes[k].caminho[l+1]);
+
+                ladroes[k].caminho.pop_back();
+                j--;
+            }
+        }
+    }
+}
+
 void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, 
     int cap, const vector<pair<double,pair<int,int > > > &custoBeneficio, vector<vector<int>> &distCasas){
     
@@ -436,6 +453,7 @@ double greedyOne(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
             }
         }
         roubo(i,cidade,itens,ladroes, cap, custoBeneficio, distCasas);
+        consertaRota(ladroes,i);
     }
     
     return fObj(ladroes, itens, cidade, distCasas, capacidade);
@@ -658,6 +676,7 @@ void VNS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
         break;
     }
 }
+
 void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCasas, int i, ofstream& saida){
         
         nMochileiros =i;
@@ -692,6 +711,7 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 
     mttp(cidade,itens,distCasas,5,saida);   
 }
+
 int main( int argc, char** argv ){
 
     leitura();
