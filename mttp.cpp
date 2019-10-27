@@ -9,6 +9,7 @@ string instancia,tipo, tipoDistancia;
     
 int dimensao, nItem, capacidade, nMochileiros;
 double vMin, vMax, aluguel;
+long double v; //Constante da função Objetivo
 
 // Guarda as informacoes referente a cada ladrão  
 struct Mochileiro{
@@ -43,7 +44,6 @@ struct Casa{
 int dist(Casa a, Casa b){
     return ceil( sqrt(((a.x-b.x)*(a.x-b.x)) + ((a.y-b.y)*(a.y-b.y))) );
 }
-
 
 //Imprime instancia para o visualizador
 void imprimeInstancia( const vector<Mochileiro> &ladroes, const vector<Casa> &cidade, ofstream& saida){
@@ -291,7 +291,7 @@ void consertaRota(vector<Mochileiro> &ladroes, int k){
         for(int j=i+1;j<ladroes[k].caminho.size();j++){ // Ve se a cidade se repete na sua frente
             if(ladroes[k].caminho[i] == ladroes[k].caminho[j]){ // Se repetir ela faz swap com a proxima cidade 
                                                             // até deixar ela na ultima posicao , depois faz um pop_back
-                for(int l=j;ladroes[k].caminho.size()-1;l++)
+                for(int l=j;l<ladroes[k].caminho.size()-1;l++)
                     swap(ladroes[k].caminho[l],ladroes[k].caminho[l+1]);
 
                 ladroes[k].caminho.pop_back();
@@ -312,7 +312,7 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
     while(coloqueiAlguem){
         
         priority_queue< pair< double, pair<int,int> > > cB;
-           coloqueiAlguem = false;
+        coloqueiAlguem = false;
         
         if(contIteracao==0){ 
             contcB =-1;
@@ -331,7 +331,7 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
 
                     if(/*!cidade[j].visited[k] &&*/ cidade[j].itemCasa[k].peso <= cap-ladroes[qualMochileiro].pesoMochila ){
                         
-                        cB.push(make_pair(custoBeneficio[contcB].first/( 1 /distCasas[0][custoBeneficio[contcB].second.first]+1 ) /*CB / DIST */, 
+                        cB.push(make_pair(custoBeneficio[contcB].first/( 1 /(distCasas[0][custoBeneficio[contcB].second.first]+1) ) /*CB / DIST */, 
                                 make_pair(custoBeneficio[contcB].second.first /*ID CIDADE*/, custoBeneficio[contcB].second.second /*ID ITEM ARTIFICIAL. de 0 a numItens*/)));        
                     }                   
                 }
@@ -384,7 +384,7 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
                         int ultimaVitima = ladroes[qualMochileiro].caminho[ladroes[qualMochileiro].caminho.size()-1];
                         
                         // cout<<"Estou na iteracao "<<contIteracao<<"e tenho candidatos a ser roubados.\n";
-                        cB.push(make_pair(custoBeneficio[contcB].first/(1/ distCasas[ultimaVitima][custoBeneficio[contcB].second.first]+1 ), 
+                        cB.push(make_pair(custoBeneficio[contcB].first/(1/ (distCasas[ultimaVitima][custoBeneficio[contcB].second.first]+1) ), 
                             make_pair(custoBeneficio[contcB].second.first, custoBeneficio[contcB].second.second)));
                    
                     }                   
@@ -420,14 +420,14 @@ void roubo(int qualMochileiro, vector<Casa> &cidade, vector<Item> &itens, vector
                 
                 coloqueiAlguem = true;
                 
-                // if(contIteracao>3 && fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro) < melhorFObj){
-                //  coloqueiAlguem = false;
-                //  cidade[ city ].visited[ escolhido.second.second ] = false;
-                //  ladroes[qualMochileiro].pesoMochila -= itens[item].peso;
-                //  ladroes[qualMochileiro].caminho.pop_back();
-                //  ladroes[qualMochileiro].mochila[ city ].pop_back(); 
-                //  casaVisitada[ city ] = visiteiAntes;
-                // }
+                if(contIteracao>3 && fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro) < melhorFObj){
+                 coloqueiAlguem = false;
+                 cidade[ city ].visited[ escolhido.second.second ] = false;
+                 ladroes[qualMochileiro].pesoMochila -= itens[item].peso;
+                 ladroes[qualMochileiro].caminho.pop_back();
+                 ladroes[qualMochileiro].mochila[ city ].pop_back(); 
+                 casaVisitada[ city ] = visiteiAntes;
+                }
             }            
             contIteracao++;
         }
@@ -446,7 +446,7 @@ double greedyOne(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
         for(int j=1;j<cidade.size();j++){ //Ignoramos a origem pois nao possui itens
             
             for(int k=0;k<cidade[j].itemCasa.size();k++){                
-                double calculoCb= (cidade[j].itemCasa[k].lucro) / ((cidade[j].itemCasa[k].peso)*(cidade[j].itemCasa[k].peso)) ;
+                double calculoCb = (cidade[j].itemCasa[k].lucro) / ((cidade[j].itemCasa[k].peso)) ;
                 // custoBeneficio.push_back(make_pair( -1* calculoCb,make_pair( j, k ))); //Gambiarra: CB.second.first == cidade , .second= item
                 custoBeneficio.push_back(make_pair( -1* calculoCb,make_pair( j, k ))); //Gambiarra: CB.second.first == cidade , .second= item
 
@@ -459,7 +459,85 @@ double greedyOne(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
     return fObj(ladroes, itens, cidade, distCasas, capacidade);
 }
 
-double greedyTwo(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes){
+double greedyTwo(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
+	int qualMochileiro, int cap){
+
+	int iteracao = 0;
+	bool coloqueiAlguem = true;
+
+	while(coloqueiAlguem){
+
+		priority_queue<pair<double,pair<int,int>>> custoBeneficio; //Custo beneficio dos itens
+	    
+		coloqueiAlguem = false;
+
+	    for(int j=1;j<cidade.size();j++){ //Ignoramos a origem pois nao possui itens
+	        if(!iteracao){
+
+		        for(int k=0;k<cidade[j].itemCasa.size();k++){ //Para todos os itens daquela cidade
+		        	if(!cidade[j].visited[k]){
+		            	long double lucro = cidade[j].itemCasa[k].lucro;
+		            	long double tempo = distCasas[0][j]/(vMax- v*ladroes[qualMochileiro].pesoMochila);
+		            	long double gastos =  aluguel*tempo;
+			        	long double cb = lucro-gastos;
+
+			        	//cout << "Cidade: " << j << " Item: " << k << " Lucro: " << lucro << " Gastos: " << gastos << endl;
+			        	
+			        	custoBeneficio.push(make_pair(cb,make_pair(j,k))); 
+			        }
+			    }
+	        }
+	        else{
+		        for(int k=0;k<cidade[j].itemCasa.size();k++){ //Para todos os itens daquela cidade
+		        	if(!cidade[j].visited[k]){
+		            	long double lucro = cidade[j].itemCasa[k].lucro;
+		            	
+		            	int qualCidade = ladroes[qualMochileiro].caminho[ ladroes[qualMochileiro].caminho.size()-1 ]; 
+		            	
+		            	long double tempo = distCasas[qualCidade][j]/ (vMax- v *ladroes[qualMochileiro].pesoMochila);
+			        	long double gastos =  aluguel*tempo;
+			        	long double cb = lucro-gastos;
+
+			        	//cout << "Cidade: " << j << " Item: " << k << " Lucro: " << lucro << " Gastos: " << gastos << endl;
+			        	
+			        	custoBeneficio.push(make_pair(cb,make_pair(j,k))); 
+			        }
+			    }
+	        }
+	    }
+
+	    iteracao++;
+	 
+	    auto escolhido = custoBeneficio.top();
+	    
+	    //cout << escolhido.first << " " <<  escolhido.second.first << " " << escolhido.second.second << endl;
+	    
+	    if(escolhido.first >0){
+	    	coloqueiAlguem = true;
+	    	//if(iteracao>2)
+		    	//cout << "Valor da FObj ate agora: " << fObj(ladroes, itens, cidade, distCasas,capacidade,qualMochileiro) << endl;
+
+			int city = escolhido.second.first;
+	        int item = cidade[city].itemCasa[escolhido.second.second].index;
+
+	        ladroes[qualMochileiro].caminho.push_back(city);
+	        ladroes[qualMochileiro].mochila[ city ].push_back(item);
+	        ladroes[qualMochileiro].pesoMochila += itens[item].peso;
+
+	        cidade[city].visited[ escolhido.second.second ] = true;
+	    }
+    }
+}
+
+double greedyTwo(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas){
+
+	int cap = capacidade/(ladroes.size());
+    
+    for(int i=0;i<ladroes.size();i++){ //Para cada ladrao...
+    	greedyTwo(cidade,itens,ladroes,distCasas,i,cap);
+    	consertaRota(ladroes,i);
+    }
+    return fObj(ladroes, itens, cidade, distCasas, capacidade);
 }
 
 double greedyThree(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes){
@@ -469,17 +547,17 @@ double greedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &lad
     vector<vector<int>> &distCasas){
     
     if(tipo == " bounded strongly corr"){ //os valores dos itens estão fortemente relacionados a seus pesos.
-        return greedyOne(cidade, itens, ladroes, distCasas);
+        return greedyTwo(cidade, itens, ladroes, distCasas);
     }
     else if(tipo == " uncorrelated"){ //os valores dos itens não estão relacionados a seus pesos. //Depois colocar Two
-        return greedyOne(cidade, itens, ladroes, distCasas);
+        return greedyTwo(cidade, itens, ladroes, distCasas);
     }
     else if(tipo == " uncorrelated, similar weights"){ // os valores dos itens não estão relacionados a seus pesos, mas os
-        return greedyOne(cidade, itens, ladroes, distCasas); // pesos de todos os itens são similares // Depois colocar Three
+        return greedyTwo(cidade, itens, ladroes, distCasas); // pesos de todos os itens são similares // Depois colocar Three
     }
 }
 
-void completa(vector<Item> &itens, vector<int> &val, vector<int> &wt){
+void completaPdMochila(vector<Item> &itens, vector<int> &val, vector<int> &wt){
 
     for(int j=0;j<itens.size();j++){
         val.push_back(itens[j].lucro);
@@ -516,7 +594,7 @@ void mochila(vector<Casa> &cidade,vector<Item> &itens,int capacidadeDaMochila, i
     if(qualTipo == 1){
         vector<int> val;
         vector<int> wt;
-        completa(itens,val,wt);
+        completaPdMochila(itens,val,wt);
         pdDaMochila(val,wt,itens.size(),capacidadeDaMochila);
     }
 }
@@ -677,17 +755,24 @@ bool trocaDuasCidades(vector<Casa> &cidade, vector<Item> &itens, vector<Mochilei
 
 void VNS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas){
 
+	long double valorFOBJ;
+    
     while(true){
         int cont=0;
-        cout << "Comeca com :" << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
+
+        valorFOBJ= fObj( ladroes, itens, cidade, distCasas, capacidade );
         
+        cout << "Comeca com :" << fixed << setprecision(2) << valorFOBJ << endl;
+
         if(trocaDuasCidades(cidade,itens,ladroes,distCasas))        cont++;
         
         if(moveUmaCidade(cidade,itens,ladroes,distCasas))           cont++;
         
         removeItem(cidade,itens,ladroes,distCasas,capacidade);
         
-        cout << "Termina com :" << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
+        valorFOBJ = fObj( ladroes, itens, cidade, distCasas, capacidade );
+        
+        cout << "Termina com :" << fixed << setprecision(2) << valorFOBJ << endl;
         
         if(cont<1)
             break;
@@ -754,6 +839,8 @@ int main( int argc, char** argv ){
     //mochila(cidade,itens,capacidade,1);
 
     ofstream saida("saida.txt");
+
+    v = (vMax-vMin) / capacidade*(1.0); //Constante da função Objetivo
 
     if(atoi(argv[1]) == 6 )
         mttp(cidade, itens, distCasas,saida);
