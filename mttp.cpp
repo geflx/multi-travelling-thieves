@@ -531,11 +531,12 @@ double greedyTwo(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
 
 double greedyTwo(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas){
 
+	// Defina a capacidade da mochila de cada ladrão 
 	int cap = capacidade/(ladroes.size());
     
     for(int i=0;i<ladroes.size();i++){ //Para cada ladrao...
     	greedyTwo(cidade,itens,ladroes,distCasas,i,cap);
-    	consertaRota(ladroes,i);
+    	consertaRota(ladroes,i); // Conserta Rota 
     }
     return fObj(ladroes, itens, cidade, distCasas, capacidade);
 }
@@ -756,7 +757,6 @@ bool trocaDuasCidades(vector<Casa> &cidade, vector<Item> &itens, vector<Mochilei
 void VNS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas){
 
 	long double valorFOBJ;
-    
     while(true){
         int cont=0;
 
@@ -764,9 +764,9 @@ void VNS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
         
         cout << "Comeca com :" << fixed << setprecision(2) << valorFOBJ << endl;
 
-        if(trocaDuasCidades(cidade,itens,ladroes,distCasas))        cont++;
+        if(trocaDuasCidades(cidade,itens,ladroes,distCasas)) cont++;
         
-        if(moveUmaCidade(cidade,itens,ladroes,distCasas))           cont++;
+        if(moveUmaCidade(cidade,itens,ladroes,distCasas)) cont++;
         
         removeItem(cidade,itens,ladroes,distCasas,capacidade);
         
