@@ -600,10 +600,12 @@ void mochila(vector<Casa> &cidade,vector<Item> &itens,int capacidadeDaMochila, i
     }
 }
 
-void removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas
+bool removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas
     , int W){
 
-    //Encontra o melhor item removido para cada mochileiro
+    /*Encontra o melhor item removido para cada mochileiro
+      Estrategia BEST IMPROVEMENT */
+    bool melhoreiAlgo = false;
     for(int i=0; i< ladroes.size(); i++){
 
         pair<int,int> bItemCidade;
@@ -613,20 +615,24 @@ void removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
 
         for(int j=0; j<ladroes[i].caminho.size(); j++){
 
+        	/* Para cada ladrao, tentaremos tirar cada item um por vez de sua mochila e verificaremos
+        		se isto ajuda no lucro da função objetivo (devido ao peso). */
+
             int qualCidade = ladroes[i].caminho[j];
             int numItensPossuidos= ladroes[i].mochila[ qualCidade ].size();
 
             for(int k=0; k< numItensPossuidos; k++){
 
-
+            	/* Removendo um item da mochile */
                 int removi= ladroes[i].mochila[ qualCidade ][ k ];
                 swap( ladroes[i].mochila[ qualCidade ][ k ], ladroes[i].mochila[ qualCidade ][ numItensPossuidos-1 ] );
                 ladroes[i].mochila[ qualCidade ].pop_back();
 
-
+                /*Calculando se foi bom ou nao a remocao do item*/
                 double tempFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
 
                 if(tempFObj >= atualFObj){
+                	melhoreiAlgo = true;
                     bItemCidade = make_pair( removi, qualCidade );
                     atualFObj = tempFObj;
                 }
@@ -634,6 +640,8 @@ void removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
 
             }
 
+            /* Se a funcao objetivo melhorou, entao iremos remover o item da mochila e tambem
+            	marca-lo como nao visitado no vetor de casas*/
             if(atualFObj > antigaFObj){
                 for(int k=0; k<ladroes[i].mochila[ bItemCidade.second ].size(); k++){
                     if( ladroes[i].mochila[ bItemCidade.second ][k] == bItemCidade.first){
@@ -654,6 +662,10 @@ void removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
             }
         }
     }
+    if( melhoreiAlgo )
+    	return true;
+    else
+    	return false;
 }
 
 bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
@@ -768,7 +780,7 @@ void VNS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
         
         if(moveUmaCidade(cidade,itens,ladroes,distCasas)) cont++;
         
-        removeItem(cidade,itens,ladroes,distCasas,capacidade);
+        if(removeItem(cidade,itens,ladroes,distCasas,capacidade)) cont++;
         
         valorFOBJ = fObj( ladroes, itens, cidade, distCasas, capacidade );
         
