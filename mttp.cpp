@@ -159,6 +159,7 @@ void leitura(){
     string lixo;    
     cin >> lixo >> lixo >> instancia;   
     cin >> lixo >> lixo >> lixo;
+    cin.ignore();
     getline(cin,tipo);
     cin >> lixo >> dimensao;
     cin >> lixo >> lixo >> lixo >> nItem;
@@ -168,7 +169,7 @@ void leitura(){
     cin >> lixo >> lixo >> aluguel;
     cin >> lixo >> tipoDistancia;
 
-    cin.ignore();
+    getline(cin,lixo);
     getline(cin,lixo);
 }
   
@@ -186,8 +187,9 @@ void leitura2(vector<Casa> &cidade){
 
 void leitura3(vector<Item> &itens){
   
-    cin.ignore();
     string lixo;
+
+    getline(cin,lixo);
     getline(cin,lixo);
     
     int aux;
@@ -210,6 +212,7 @@ void prenche(vector<Casa> &cidade, vector<Item> &itens){
 }
 
 void calculaDistCasas(const vector<Casa> &cidade, vector<vector<int> > &distCasas){
+    
     for(int i=0;i<dimensao;i++){
         for(int j=i;j<dimensao;j++){
             int repetirSimetria=dist(cidade[i],cidade[j]);
@@ -546,14 +549,18 @@ double greedyThree(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
 
 double greedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, string &tipo, 
     vector<vector<int>> &distCasas){
-    
-    if(tipo == " bounded strongly corr"){ //os valores dos itens estão fortemente relacionados a seus pesos.
+    cout << tipo.size() << endl;
+
+    //"bounded strongly corr"
+    if(tipo.size() == 22  || tipo.size() == 21){ // os valores dos itens estão fortemente relacionados a seus pesos.
         return greedyTwo(cidade, itens, ladroes, distCasas);
     }
-    else if(tipo == " uncorrelated"){ //os valores dos itens não estão relacionados a seus pesos. //Depois colocar Two
+    //"uncorrelated" 
+    else if(tipo.size() == 13 || tipo.size() == 12 ){ //os valores dos itens não estão relacionados a seus pesos. //Depois colocar Two
         return greedyTwo(cidade, itens, ladroes, distCasas);
     }
-    else if(tipo == " uncorrelated, similar weights"){ // os valores dos itens não estão relacionados a seus pesos, mas os
+    //"uncorrelated, similar weights"
+    else if(tipo.size() == 30 || tipo.size() == 29 ){ // os valores dos itens não estão relacionados a seus pesos, mas os
         return greedyTwo(cidade, itens, ladroes, distCasas); // pesos de todos os itens são similares // Depois colocar Three
     }
 }
@@ -835,21 +842,16 @@ int main( int argc, char** argv ){
   
     vector<Item> itens(nItem);
     leitura3(itens);
-    
+
     prenche(cidade, itens); 
     
     //imprimiCasas(cidade);
     //imprimiItens(itens);
     
-    //Criando com dimensao+1 posicoes devido ao 0 ser a origem. Comecamos do 1.
-    // vector<vector<int> > distCasas(dimensao+1,vector<int>(dimensao+1,0)); Acredito que o +1 nao seja necessario
-    
     vector<vector<int> > distCasas(dimensao,vector<int>(dimensao,0));
     
     calculaDistCasas(cidade,distCasas);
     
-    //mochila(cidade,itens,capacidade,1);
-
     ofstream saida("saida.txt");
 
     v = (vMax-vMin) / capacidade*(1.0); //Constante da função Objetivo
