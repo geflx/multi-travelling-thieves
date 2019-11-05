@@ -742,6 +742,54 @@ bool removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
     	return false;
 }
 
+bool addItemCidadeRota( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas
+    , int W ){
+
+	//FIRST IMPROVEMENT.
+
+	 bool melhoreiAlgo = false;
+    for(int i=0; i< ladroes.size(); i++){
+
+        double antigaFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
+
+
+        for(int j=0; j<ladroes[i].caminho.size(); j++){ 
+
+        	/* Para cada ladrao, tentaremos adicionar itens disponiveis nas cidades.*/
+
+            int qualCidade = ladroes[i].caminho[j];
+
+            for(int z=0;z < cidade[ qualCidade ].visited.size() ; z++){
+
+            	if( ! cidade[ qualCidade ].visited[z]){
+            		//Item disponivel!
+
+            		ladroes[i].mochila[qualCidade].push_back(  cidade[ qualCidade ].itemCasa[ z ].index);
+
+            		double tempFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
+
+			        if(tempFObj > antigaFObj){
+			 
+			        	cidade[ qualCidade ].visited[z] = true;
+
+			        	return true;
+
+			        }else{
+            			ladroes[i].mochila[qualCidade].pop_back();
+            			//Nao melhorou, remove o item inserido.
+			        }
+
+            	}
+
+            }
+
+        }
+
+    }
+    return false;
+
+
+}
 bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
     int qualMochileiro, int verticeCaminha){
 
@@ -898,7 +946,7 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
     while(true){
     	
-    	cout << "iteracao: " << cont++ << endl;
+    	// cout << "iteracao: " << cont++ << endl;
 
         while(trocaDuasCidades(cidade,itens,ladroes,distCasas));
         
@@ -906,6 +954,8 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
         
         if(removeItem(cidade,itens,ladroes,distCasas,capacidade)) continue;
     	
+    	if( addItemCidadeRota( cidade, itens, ladroes, distCasas,capacidade)) continue;
+
     	break;
     }
     
