@@ -942,6 +942,10 @@ bool removeCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> 
         
         auto it = ladroes[qualMochileiro].caminho.begin()+posicaoCidade; 
         
+        int diminuiPeso=0;
+        for(int i=0;i<ladroes[qualMochileiro].mochila[qualCidade].size();i++){
+        	diminuiPeso += itens[ ladroes[qualMochileiro].mochila[qualCidade][i] ].peso;
+        }
         ladroes[qualMochileiro].mochila[qualCidade].clear();
 
         double melhorFObj2 = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
@@ -994,7 +998,7 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
         
         long double atualFObj = fObj(ladroesClone, itensClone, cidadeClone, distCasas, capacidade);
         
-        cout << "FOBJ atual " << i << ": " << atualFObj << endl;  
+        //cout << "FOBJ atual " << i << ": " << atualFObj << endl;  
         
         if( atualFObj > melhorFObj){
             
