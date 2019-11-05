@@ -679,37 +679,40 @@ bool removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
     for(int i=0; i< ladroes.size(); i++){
 
         pair<int,int> bItemCidade;
-        double melhoriaFObj= -200000000;
         double antigaFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
         double atualFObj= antigaFObj;
 
-        for(int j=0; j<ladroes[i].caminho.size(); j++){
 
-        	if(!ladroes[i].caminho.size()) continue; 
+
+        for(int j=0; j<ladroes[i].caminho.size(); j++){ 
+
         	/* Para cada ladrao, tentaremos tirar cada item um por vez de sua mochila e verificaremos
         		se isto ajuda no lucro da função objetivo (devido ao peso). */
 
             int qualCidade = ladroes[i].caminho[j];
             int numItensPossuidos= ladroes[i].mochila[ qualCidade ].size();
 
-            for(int k=0; k< numItensPossuidos; k++){
+            if( numItensPossuidos > 1){ //So tira item de rota que carrega mais de um
 
-            	/* Removendo um item da mochile */
-                int removi= ladroes[i].mochila[ qualCidade ][ k ];
-                swap( ladroes[i].mochila[ qualCidade ][ k ], ladroes[i].mochila[ qualCidade ][ numItensPossuidos-1 ] );
-                ladroes[i].mochila[ qualCidade ].pop_back();
+            	for(int k=0; k< numItensPossuidos; k++){
+			    	/* Removendo um item da mochila */
+			        int removi= ladroes[i].mochila[ qualCidade ][ k ];
+			        swap( ladroes[i].mochila[ qualCidade ][ k ], ladroes[i].mochila[ qualCidade ][ numItensPossuidos-1 ] );
+			        ladroes[i].mochila[ qualCidade ].pop_back();
 
-                /*Calculando se foi bom ou nao a remocao do item*/
-                double tempFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
+			        /*Calculando se foi bom ou nao a remocao do item*/
+			        double tempFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
 
-                if(tempFObj >= atualFObj){
-                	melhoreiAlgo = true;
-                    bItemCidade = make_pair( removi, qualCidade );
-                    atualFObj = tempFObj;
-                }
-                ladroes[i].mochila[ qualCidade ].push_back( removi );
+			        if(tempFObj > atualFObj){
+			        	melhoreiAlgo = true;
+			            bItemCidade = make_pair( removi, qualCidade );
+			            atualFObj = tempFObj;
+			        }
+			        ladroes[i].mochila[ qualCidade ].push_back( removi );
 
+			       }	
             }
+     
 
             /* Se a funcao objetivo melhorou, entao iremos remover o item da mochila e tambem
             	marca-lo como nao visitado no vetor de casas*/
