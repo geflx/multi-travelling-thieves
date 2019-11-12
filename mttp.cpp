@@ -937,32 +937,44 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
 
     vector<Casa> cidadeOtima;
     vector<Mochileiro> ladroesOtima;
-    vector<Item> itensOtima;
 
     cidadeOtima = cidade;
-    itensOtima = itens; 
     ladroesOtima = ladroes;
 
     long double melhorFObj = 0;
 
-    int nIteracoes = dimensao;//dimensao;
+    int nIteracoes;
 
+    if(nItem < 1000){
+    	nIteracoes = dimensao;
+    }else if(nItem < 5000) {
+    	nIteracoes =  20;
+    }else if(nItem < 10000){
+    	nIteracoes = 10;
+    }else{
+    	nIteracoes = 5;
+    }
+    
     for(int i=0;i<nIteracoes;i++){
         vector<Casa> cidadeClone;
 
         vector<Mochileiro> ladroesClone;
         
-        vector<Item> itensClone;
-
         cidadeClone = cidade;
-        itensClone = itens; 
         ladroesClone = ladroes;
         
         //cerr << "Vai até o: " << (int) ((log10(i+10))/(log10(3))) << endl;
 
-        greedyGrasp(cidadeClone,itensClone,ladroesClone,distCasas,((log10(i+10))/(log10(3))));
+        if(nItem < 1000)
+        	greedyGrasp(cidadeClone,itens,ladroesClone,distCasas,((log10(i+10))/(log10(3))));
+    	else if(nItem < 5000)
+    		greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, sqrt(i)+1);
+	    else if(nItem < 10000)
+	    	greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, i+1 );
+	    else
+	    	greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, i+1 );
         
-        long double atualFObj = fObj(ladroesClone, itensClone, cidadeClone, distCasas, capacidade);
+        long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas, capacidade);
         
         //cout << "FOBJ atual " << i << ": " << atualFObj << endl;  
         
@@ -970,7 +982,6 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
             
             cidadeOtima = cidadeClone;
             ladroesOtima = ladroesClone; 
-            itensOtima = itensClone;
             
             melhorFObj = atualFObj;
         }
@@ -978,7 +989,6 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
 
     cidade = cidadeOtima;
     ladroes = ladroesOtima;
-    itens = itensOtima;
 }
 
 void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas){
