@@ -899,11 +899,20 @@ bool removeCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> 
         
         auto it = ladroes[qualMochileiro].caminho.begin()+posicaoCidade; 
         
+        //Retiro aquela cidade da rota
+        ladroes[qualMochileiro].caminho.erase(it);
+        
+        //Calculo o peso que irá sair da mochla do ladrão
         int diminuiPeso=0;
         for(int i=0;i<ladroes[qualMochileiro].mochila[qualCidade].size();i++){
         	diminuiPeso += itens[ ladroes[qualMochileiro].mochila[qualCidade][i] ].peso;
         }
-        ladroes[qualMochileiro].mochila[qualCidade].clear();
+
+        //Tiro o peso q vai sair da mochila do ladrao
+        ladroes[qualMochileiro].pesoMochila-= diminuiPeso;
+
+        //Retiro aqueles itens que o ladrao pegou nessa cidade da rota dele
+		ladroes[qualMochileiro].mochila[qualCidade].clear();
 
         double melhorFObj2 = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
 
