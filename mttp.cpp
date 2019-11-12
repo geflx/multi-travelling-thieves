@@ -949,8 +949,9 @@ bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Moc
            
                         if( novoObj > antigaFObj){
                             ladroes[i].pesoMochila+=cidade[ qualCidade ].itemCasa[z].peso;
+                            cidade[ qualCidade ].visited[z] = true;
 
-                            // cout<<" MELHOREI "<<novaObj-antigaFObj<<endl;
+                            // cout<<" MELHOREI "<<novoObj-antigaFObj<<endl;
                             return true;
 
                         }else{
@@ -1162,18 +1163,18 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
     while(true){
         
-        // while(trocaDuasCidades(cidade,itens,ladroes,distCasas));
+        while(trocaDuasCidades(cidade,itens,ladroes,distCasas));
         
-        // if(moveUmaCidade(cidade,itens,ladroes,distCasas)) continue;
+        if(moveUmaCidade(cidade,itens,ladroes,distCasas)) continue;
         
-        // if(removeItem(cidade,itens,ladroes,distCasas,capacidade)) continue;
+        if(removeItem(cidade,itens,ladroes,distCasas,capacidade)) continue;
 
-        // if(removeCidade(cidade,itens,ladroes,distCasas)) continue;
+        if(removeCidade(cidade,itens,ladroes,distCasas)) continue;
 
-        // if(addItemCidadeRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
+        if(addItemCidadeRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
 
         double novo= fObj( ladroes, itens, cidade, distCasas, capacidade );
-        cout<< "Iteracao: " << cont++ << " valorFOBJ " << novo <<endl;      
+        // cout<< "Iteracao: " << cont++ << " valorFOBJ " << novo <<endl;      
 
         if(addItemCidadeNaoRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
 
