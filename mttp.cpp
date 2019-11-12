@@ -1468,7 +1468,7 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
     cout << "Comeca com: " << fixed << setprecision(2) << valorFOBJ << endl;
 
     while(true){
-    	cout << "Estou com: " << fixed << setprecision(2) << valorFOBJ << endl;
+    	cout << "Estou com: " << fixed << setprecision(2) << fObj( ladroes, itens, cidade, distCasas, capacidade ) << endl;
 
         while(trocaDuasCidades(cidade,itens,ladroes,distCasas));
         
