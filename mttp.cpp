@@ -705,8 +705,6 @@ double greedyGrasp2(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro
 
     return fObj(ladroes, itens, cidade, distCasas, capacidade);
 }
-double greedyThree(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes){
-}
 
 double greedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, string &tipo, 
     vector<vector<int>> &distCasas){
@@ -851,7 +849,6 @@ bool addItemCidadeRota( vector<Casa> &cidade, vector<Item> &itens, vector<Mochil
 
     }
     return false;
-
 }
 
 bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
@@ -1042,7 +1039,7 @@ bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Moc
 
 						moveUmaCidade2(cidade,itens,ladroes,distCasas,i,ladroes[i].caminho.size()-1,antigoFObj);
 
-                        double novoObj= fObj( ladroes, itens, cidade, distCasas, capacidade );
+                        double novoObj= fObj( ladroes, itens, cidade, distCasas, capacidade,i );
            
                         if( novoObj > antigaFObj){
                             ladroes[i].pesoMochila+=cidade[ qualCidade ].itemCasa[z].peso;
@@ -1141,6 +1138,7 @@ bool trocaCidadeEntreLadroes( vector<Casa> &cidade, vector<Item> &itens, vector<
     }   
     return false;
 }
+
 bool trocaCidadeRepetidaEntreLadroes( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas
     , int W ){
 
@@ -1242,6 +1240,7 @@ bool trocaCidadeRepetidaEntreLadroes( vector<Casa> &cidade, vector<Item> &itens,
   
     return false;
 }
+
 bool trocaDuasCidades(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> distCasas,
     int qualMochileiro){
 
@@ -1469,7 +1468,8 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
     cout << "Comeca com: " << fixed << setprecision(2) << valorFOBJ << endl;
 
     while(true){
-        
+    	cout << "Estou com: " << fixed << setprecision(2) << valorFOBJ << endl;
+
         while(trocaDuasCidades(cidade,itens,ladroes,distCasas));
         
         if(moveUmaCidade(cidade,itens,ladroes,distCasas)) continue;
@@ -1485,7 +1485,6 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
         if(trocaCidadeEntreLadroes(cidade,itens,ladroes,distCasas,capacidade)) continue;
         
         if(trocaCidadeRepetidaEntreLadroes(cidade,itens,ladroes,distCasas,capacidade)) continue;
-
 
         break;
     }
