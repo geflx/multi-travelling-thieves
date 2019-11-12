@@ -509,6 +509,7 @@ double greedyOne(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
     return fObj(ladroes, itens, cidade, distCasas, capacidade);
 }
 
+
 double greedyGrasp(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
     int qualMochileiro, int cap, int randow){
 
@@ -674,7 +675,7 @@ bool removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
             /* Se a funcao objetivo melhorou, entao iremos remover o item da mochila e tambem
                 marca-lo como nao visitado no vetor de casas*/
             if(atualFObj > antigaFObj){
-                
+
                 for(int k=0; k<ladroes[i].mochila[ bItemCidade.second ].size(); k++){
                     if( ladroes[i].mochila[ bItemCidade.second ][k] == bItemCidade.first){
                         swap( ladroes[i].mochila[ bItemCidade.second ][k], ladroes[i].mochila[ bItemCidade.second ][ ladroes[i].mochila[ bItemCidade.second ].size()-1] );
@@ -755,6 +756,7 @@ bool addItemCidadeRota( vector<Casa> &cidade, vector<Item> &itens, vector<Mochil
     return false;
 
 }
+
 bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
     int qualMochileiro, int verticeCaminha){
 
@@ -808,7 +810,74 @@ bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
     }
     return cont;
 }
- 
+
+bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas
+    , int W ){
+
+    //FIRST IMPROVEMENT.
+
+    int totalPeso=0;
+    for(int i=0;i<ladroes.size();i++){
+        totalPeso += ladroes[i].pesoMochila;
+    }
+
+    for(int i=0; i< ladroes.size(); i++){
+
+        double antigaFObj = fObj( ladroes, itens, cidade, distCasas, W, i);
+
+        unordered_set<int> cidadesVisi;
+        for(int city: ladroes[i].caminho){
+            cidadesVisi.insert( city );
+        }
+
+        //Olhando as cidades nao visitadas
+
+        for(int k=1; k< cidade.size(); k++){
+
+            int qualCidade = k;
+
+
+            if( cidadesVisi.find( qualCidade )==cidadesVisi.end()){
+                //A cidade ainda nao esta na rota
+
+                //Inserimos a cidade
+                ladroes[i].caminho.push_back( qualCidade );
+
+                for(int z=0;z < cidade[ qualCidade ].visited.size() ; z++){
+
+                    if( !cidade[ qualCidade ].visited[z] && 
+                        capacidade >= (totalPeso + cidade[ qualCidade ].itemCasa[z].peso) ){
+
+                        int qualItem = cidade[qualCidade].itemCasa[z].index;
+                        ladroes[i].mochila[ qualCidade ].push_back( qualItem);
+
+                        moveUmaCidade(cidade,itens,ladroes,distCasas,i,ladroes[i].caminho.size()-1);
+
+                        double novaObj = fObj( ladroes, itens, cidade, distCasas, W, i);
+
+                        if( novaObj > antigaFObj){
+                            ladroes[i].pesoMochila+=cidade[ qualCidade ].itemCasa[z].peso;
+
+                            cout<<" MELHOREI "<<novaObj-antigaFObj<<endl;
+                            return true;
+
+                        }else{
+                            //Desfazendo
+                            ladroes[i].mochila[ qualCidade ].pop_back();
+                        }
+                    }
+
+
+                }
+
+                ladroes[i].caminho.pop_back();
+            }
+
+        }
+    }
+    return false;
+
+}
 bool trocaDuasCidades(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> distCasas,
     int qualMochileiro){
 
@@ -1004,16 +1073,20 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
     while(true){
         
-        while(trocaDuasCidades(cidade,itens,ladroes,distCasas));
+        // while(trocaDuasCidades(cidade,itens,ladroes,distCasas));
         
-        if(moveUmaCidade(cidade,itens,ladroes,distCasas)) continue;
+        // if(moveUmaCidade(cidade,itens,ladroes,distCasas)) continue;
         
-        if(removeItem(cidade,itens,ladroes,distCasas,capacidade)) continue;
+        // if(removeItem(cidade,itens,ladroes,distCasas,capacidade)) continue;
 
-        if(removeCidade(cidade,itens,ladroes,distCasas)) continue;
+        // if(removeCidade(cidade,itens,ladroes,distCasas)) continue;
 
-        if(addItemCidadeRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
+        // if(addItemCidadeRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
+
+
+        if(addItemCidadeNaoRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
         
+
         break;
     }
     
