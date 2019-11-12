@@ -674,6 +674,7 @@ bool removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
             /* Se a funcao objetivo melhorou, entao iremos remover o item da mochila e tambem
                 marca-lo como nao visitado no vetor de casas*/
             if(atualFObj > antigaFObj){
+                
                 for(int k=0; k<ladroes[i].mochila[ bItemCidade.second ].size(); k++){
                     if( ladroes[i].mochila[ bItemCidade.second ][k] == bItemCidade.first){
                         swap( ladroes[i].mochila[ bItemCidade.second ][k], ladroes[i].mochila[ bItemCidade.second ][ ladroes[i].mochila[ bItemCidade.second ].size()-1] );
@@ -690,6 +691,8 @@ bool removeItem( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &
                     }
 
                 }
+
+                ladroes[i].pesoMochila -= itens[ bItemCidade.first].peso;
             }
         }
     }
@@ -905,14 +908,14 @@ bool removeCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> 
         //Calculo o peso que irá sair da mochla do ladrão
         int diminuiPeso=0;
         for(int i=0;i<ladroes[qualMochileiro].mochila[qualCidade].size();i++){
-        	diminuiPeso += itens[ ladroes[qualMochileiro].mochila[qualCidade][i] ].peso;
+            diminuiPeso += itens[ ladroes[qualMochileiro].mochila[qualCidade][i] ].peso;
         }
 
         //Tiro o peso q vai sair da mochila do ladrao
         ladroes[qualMochileiro].pesoMochila-= diminuiPeso;
 
         //Retiro aqueles itens que o ladrao pegou nessa cidade da rota dele
-		ladroes[qualMochileiro].mochila[qualCidade].clear();
+        ladroes[qualMochileiro].mochila[qualCidade].clear();
 
         double melhorFObj2 = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
 
@@ -946,13 +949,13 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
     int nIteracoes;
 
     if(nItem < 1000){
-    	nIteracoes = dimensao;
+        nIteracoes = dimensao;
     }else if(nItem < 5000) {
-    	nIteracoes =  20;
+        nIteracoes =  20;
     }else if(nItem < 10000){
-    	nIteracoes = 10;
+        nIteracoes = 10;
     }else{
-    	nIteracoes = 5;
+        nIteracoes = 5;
     }
     
     for(int i=0;i<nIteracoes;i++){
@@ -966,13 +969,13 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
         //cerr << "Vai até o: " << (int) ((log10(i+10))/(log10(3))) << endl;
 
         if(nItem < 1000)
-        	greedyGrasp(cidadeClone,itens,ladroesClone,distCasas,((log10(i+10))/(log10(3))));
-    	else if(nItem < 5000)
-    		greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, sqrt(i)+1);
-	    else if(nItem < 10000)
-	    	greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, i+1 );
-	    else
-	    	greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, i+1 );
+            greedyGrasp(cidadeClone,itens,ladroesClone,distCasas,((log10(i+10))/(log10(3))));
+        else if(nItem < 5000)
+            greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, sqrt(i)+1);
+        else if(nItem < 10000)
+            greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, i+1 );
+        else
+            greedyGrasp(cidadeClone,itens,ladroesClone,distCasas, i+1 );
         
         long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas, capacidade);
         
