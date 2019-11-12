@@ -777,7 +777,7 @@ bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
         
         if( atualFObj > melhorFObj){
             //cout << atualFObj << " " << melhorFObj << endl;
-        	subiu = false;
+            subiu = false;
             melhorVertice = i+1;
             melhorFObj = atualFObj; 
             melhorou = true; 
@@ -796,7 +796,7 @@ bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
         
         if( atualFObj > melhorFObj){
             //cout << atualFObj << " " << melhorFObj << endl;
-        	subiu = true;
+            subiu = true;
             melhorVertice = i-1;
             melhorFObj = atualFObj; 
             melhorou = true;
@@ -807,16 +807,16 @@ bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
     for(int i=0;i<verticeCaminha;i++)
         swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]);
         
-	if(melhorou){
-    	if(!subiu){
-	        for(int i=verticeCaminha; i<melhorVertice;i++){
-	            swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i+1]);
-	        }
-    	}else{
-    		for(int i=verticeCaminha; i>melhorVertice;i--){
-	            swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i-1]);
-	        }
-    	}
+    if(melhorou){
+        if(!subiu){
+            for(int i=verticeCaminha; i<melhorVertice;i++){
+                swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i+1]);
+            }
+        }else{
+            for(int i=verticeCaminha; i>melhorVertice;i--){
+                swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i-1]);
+            }
+        }
    
         return true;
     }
@@ -838,6 +838,70 @@ bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
     return cont;
 }
 
+bool moveUmaCidade2(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
+    int qualMochileiro, int verticeCaminha, double &melhorFObj){
+
+    int melhorVertice = -1;
+    
+    bool melhorou = false;
+    bool subiu;
+    
+    //Move a cidade para uma posicao a frente dela na solução 
+    for(int i=verticeCaminha;i<ladroes[qualMochileiro].caminho.size()-1;i++){
+        //cerr << ladroes[qualMochileiro].caminho[i] << " " << ladroes[qualMochileiro].caminho[i+1] << endl; 
+        
+        swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]);
+    
+        double atualFObj = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
+        
+        if( atualFObj > melhorFObj){
+            //cout << atualFObj << " " << melhorFObj << endl;
+            subiu = false;
+            melhorVertice = i+1;
+            melhorFObj = atualFObj; 
+            melhorou = true; 
+        } 
+    }
+    
+    for(int i=ladroes[qualMochileiro].caminho.size()-2;i>=verticeCaminha;i--)
+        swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]);
+    
+    //Move a cidade para uma posicao atras dela na solução 
+    for(int i=verticeCaminha;i>0;i--){
+
+        swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i-1]);
+    
+        double atualFObj = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
+        
+        if( atualFObj > melhorFObj){
+            //cout << atualFObj << " " << melhorFObj << endl;
+            subiu = true;
+            melhorVertice = i-1;
+            melhorFObj = atualFObj; 
+            melhorou = true;
+
+        } 
+    }
+    
+    for(int i=0;i<verticeCaminha;i++)
+        swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]);
+        
+    if(melhorou){
+        if(!subiu){
+            for(int i=verticeCaminha; i<melhorVertice;i++){
+                swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i+1]);
+            }
+        }else{
+            for(int i=verticeCaminha; i>melhorVertice;i--){
+                swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i-1]);
+            }
+        }
+   
+        return true;
+    }
+    return false;
+}
+
 bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas
     , int W ){
 
@@ -854,7 +918,7 @@ bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Moc
 
         unordered_set<int> cidadesVisi;
         for(int city: ladroes[i].caminho){
-            cidadesVisi.insert( city );
+        	cidadesVisi.insert( city );
         }
 
         //Olhando as cidades nao visitadas
@@ -862,7 +926,6 @@ bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Moc
         for(int k=1; k< cidade.size(); k++){
 
             int qualCidade = k;
-
 
             if( cidadesVisi.find( qualCidade )==cidadesVisi.end()){
                 //A cidade ainda nao esta na rota
@@ -878,14 +941,16 @@ bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Moc
                         int qualItem = cidade[qualCidade].itemCasa[z].index;
                         ladroes[i].mochila[ qualCidade ].push_back( qualItem);
 
-                        moveUmaCidade(cidade,itens,ladroes,distCasas,i,ladroes[i].caminho.size()-1);
+                        double antigoFObj = antigaFObj;
 
-                        double novaObj = fObj( ladroes, itens, cidade, distCasas, W, i);
+						moveUmaCidade2(cidade,itens,ladroes,distCasas,i,ladroes[i].caminho.size()-1,antigoFObj);
 
-                        if( novaObj > antigaFObj){
+                        double novoObj= fObj( ladroes, itens, cidade, distCasas, capacidade );
+           
+                        if( novoObj > antigaFObj){
                             ladroes[i].pesoMochila+=cidade[ qualCidade ].itemCasa[z].peso;
 
-                            cout<<" MELHOREI "<<novaObj-antigaFObj<<endl;
+                            // cout<<" MELHOREI "<<novaObj-antigaFObj<<endl;
                             return true;
 
                         }else{
@@ -893,18 +958,15 @@ bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Moc
                             ladroes[i].mochila[ qualCidade ].pop_back();
                         }
                     }
-
-
                 }
-
                 ladroes[i].caminho.pop_back();
             }
 
         }
     }
     return false;
-
 }
+
 bool trocaDuasCidades(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> distCasas,
     int qualMochileiro){
 
@@ -1110,9 +1172,10 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
         // if(addItemCidadeRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
 
+        double novo= fObj( ladroes, itens, cidade, distCasas, capacidade );
+        cout<< "Iteracao: " << cont++ << " valorFOBJ " << novo <<endl;      
 
         if(addItemCidadeNaoRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
-        
 
         break;
     }
