@@ -968,6 +968,183 @@ bool addItemCidadeNaoRota( vector<Casa> &cidade, vector<Item> &itens, vector<Moc
     return false;
 }
 
+bool trocaCidadeEntreLadroes( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas
+    , int W ){
+
+    //FIRST IMPROVEMENT.
+
+    if(ladroes.size()==1)
+    	return false;
+
+    // cout<<"vizi inteira "<<fObj( ladroes, itens, cidade, distCasas, capacidade)<<endl;
+
+    vector<unordered_set<int>>  jafui( ladroes.size());
+    for(int i=0;i<ladroes.size();i++){
+    	for(int j=0;j<ladroes[i].caminho.size();j++){
+
+    		jafui[i].insert( ladroes[i].caminho[j]);
+    	}
+    }
+
+    for(int i=0; i<ladroes.size()-1;i++){
+
+        double funcaoEsquerda= fObj( ladroes, itens, cidade, distCasas, capacidade, i);
+
+    	for(int j=i+1; j<ladroes.size(); j++){
+
+        	double funcaoDireita= fObj( ladroes, itens, cidade, distCasas, capacidade, j);
+
+    		for(int k=0; k<ladroes[i].caminho.size();k++){
+
+    			for(int l=0; l<ladroes[j].caminho.size(); l++){
+
+    				int cidadeEsquerda = ladroes[i].caminho[k];
+    				int cidadeDireita = ladroes[j].caminho[l];
+
+
+    				if( !(jafui[i].find(cidadeDireita) == jafui[i].end() 
+    					&& jafui[j].find(cidadeEsquerda) == jafui[j].end()) ) {
+    					continue;
+    				}
+    				vector<int> tempLadraoEsquerda = ladroes[i].mochila[ cidadeEsquerda ];
+    				vector<int> tempLadraoDireita = ladroes[j].mochila[ cidadeDireita ];
+
+    				swap(ladroes[i].caminho[k], ladroes[j].caminho[l]);
+
+    				ladroes[i].mochila[ cidadeEsquerda ].clear();
+    				ladroes[j].mochila[ cidadeDireita ].clear();
+
+    				ladroes[i].mochila[ cidadeDireita ] = tempLadraoDireita;
+    				ladroes[j].mochila[ cidadeEsquerda ] = tempLadraoEsquerda;
+
+
+        			double novaFEsq= fObj( ladroes, itens, cidade, distCasas, capacidade, i);
+        			double novaFDir= fObj( ladroes, itens, cidade, distCasas, capacidade, j);
+
+        			if( (funcaoEsquerda+funcaoDireita) < (novaFEsq+novaFDir)  ){
+
+        				// cout<<"Melhorei Troca: "<< (novaFDir+novaFEsq)-(funcaoEsquerda+funcaoDireita)<<endl;
+    					
+        				return true;
+        			}else{
+
+        				swap(ladroes[i].caminho[k], ladroes[j].caminho[l]);
+
+	    				ladroes[i].mochila[ cidadeDireita ].clear();
+	    				ladroes[j].mochila[ cidadeEsquerda ].clear();
+
+	    				ladroes[i].mochila[ cidadeEsquerda ] = tempLadraoEsquerda;
+	    				ladroes[j].mochila[ cidadeDireita ] = tempLadraoDireita;
+        			}
+
+    			}
+
+    		}
+    	}
+    }   
+    return false;
+}
+bool trocaCidadeRepetidaEntreLadroes( vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas
+    , int W ){
+
+    //FIRST IMPROVEMENT.
+
+    if(ladroes.size()==1)
+    	return false;
+
+    // cout<<"vizi inteira "<<fObj( ladroes, itens, cidade, distCasas, capacidade)<<endl;
+
+    int rep=0;
+    for(int i=0; i<ladroes.size()-1;i++){
+
+        double funcaoEsquerda= fObj( ladroes, itens, cidade, distCasas, capacidade, i);
+
+    	for(int j=i+1; j<ladroes.size(); j++){
+
+        	double funcaoDireita= fObj( ladroes, itens, cidade, distCasas, capacidade, j);
+
+    		for(int k=0; k<ladroes[i].caminho.size();k++){
+
+    			for(int l=0; l<ladroes[j].caminho.size(); l++){
+
+    				int cidadeEsquerda = ladroes[i].caminho[k];
+    				int cidadeDireita = ladroes[j].caminho[l];
+
+
+    				if( cidadeEsquerda!=cidadeDireita ) {
+
+    					//Nao passaram na mesma cidade. Continua.
+    					continue;
+    				}
+
+    				rep++;
+    				int qualCidade = cidadeEsquerda; //ou direita, sao iguais.
+
+    				vector<int> tempLadraoEsquerda = ladroes[i].mochila[ cidadeEsquerda ];
+    				vector<int> tempLadraoDireita = ladroes[j].mochila[ cidadeDireita ];
+
+    				vector<int> tempCaminhoEsq = ladroes[i].caminho;
+    				vector<int> tempCaminhoDir = ladroes[j].caminho;
+
+    				//Tenta passar pro dar esquerda
+    				for(int u=0; u<ladroes[j].mochila[qualCidade].size(); u++){
+    					ladroes[i].mochila[qualCidade].push_back( ladroes[j].mochila[qualCidade][u]);
+    				}
+
+    				ladroes[j].mochila[ qualCidade ].clear();
+
+    				for(int u=l; u<ladroes[j].caminho.size()-1;u++){
+    					ladroes[j].caminho[u] = ladroes[j].caminho[u+1];
+    				}
+    				ladroes[j].caminho.pop_back();
+
+	    			double novaFEsq= fObj( ladroes, itens, cidade, distCasas, capacidade, i);
+        			double novaFDir= fObj( ladroes, itens, cidade, distCasas, capacidade, j);
+
+        			if( (funcaoEsquerda+funcaoDireita) < (novaFEsq+novaFDir)  ){
+        				// cout<<"Melhorei "<< (novaFEsq+novaFDir)-(funcaoEsquerda+funcaoDireita)<<" P ESQUERDA\n";
+
+        				return true;
+
+        			}else{
+
+        				ladroes[i].mochila[ qualCidade ]= tempLadraoEsquerda;
+        				ladroes[j].mochila[ qualCidade ]= tempLadraoDireita;
+        				ladroes[j].caminho = tempCaminhoDir;
+        			}
+
+        			//Tenta passar pro dar esquerda
+    				for(int u=0; u<ladroes[i].mochila[qualCidade].size(); u++){
+    					ladroes[j].mochila[qualCidade].push_back( ladroes[i].mochila[qualCidade][u]);
+    				}
+    				ladroes[i].mochila[ qualCidade ].clear();
+
+    				for(int u=k; u<ladroes[i].caminho.size()-1;u++){
+    					ladroes[i].caminho[u] = ladroes[i].caminho[u+1];
+    				}
+    				ladroes[i].caminho.pop_back();
+
+	    			novaFEsq= fObj( ladroes, itens, cidade, distCasas, capacidade, i);
+        			novaFDir= fObj( ladroes, itens, cidade, distCasas, capacidade, j);
+
+        			if( (funcaoEsquerda+funcaoDireita) < (novaFEsq+novaFDir)  ){
+
+        				// cout<<"Melhorei "<< (novaFEsq+novaFDir)-(funcaoEsquerda+funcaoDireita)<<" P DIREITA\n";
+        				return true;
+
+        			}else{
+        				// cout<<"nn melhorei\n";
+        				ladroes[j].mochila[ qualCidade ]= tempLadraoDireita;
+        				ladroes[i].mochila[ qualCidade ]= tempLadraoEsquerda;
+        				ladroes[i].caminho = tempCaminhoEsq;
+        			}
+    			}
+    		}
+    	}
+    }   
+  
+    return false;
+}
 bool trocaDuasCidades(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> distCasas,
     int qualMochileiro){
 
@@ -1173,10 +1350,15 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
         if(addItemCidadeRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
 
-        double novo= fObj( ladroes, itens, cidade, distCasas, capacidade );
-        // cout<< "Iteracao: " << cont++ << " valorFOBJ " << novo <<endl;      
+        // double novo= fObj( ladroes, itens, cidade, distCasas, capacidade );
+        // // cout<< "Iteracao: " << cont++ << " valorFOBJ " << novo <<endl;      
 
         if(addItemCidadeNaoRota(cidade,itens,ladroes,distCasas,capacidade)) continue;
+        
+        if(trocaCidadeEntreLadroes(cidade,itens,ladroes,distCasas,capacidade)) continue;
+        
+         if(trocaCidadeRepetidaEntreLadroes(cidade,itens,ladroes,distCasas,capacidade)) continue;
+
 
         break;
     }
