@@ -765,34 +765,61 @@ bool moveUmaCidade(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro>
     double melhorFObj = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
 
     bool melhorou = false;
-
+    bool subiu;
+    
+    //Move a cidade para uma posicao a frente dela na solução 
     for(int i=verticeCaminha;i<ladroes[qualMochileiro].caminho.size()-1;i++){
         //cerr << ladroes[qualMochileiro].caminho[i] << " " << ladroes[qualMochileiro].caminho[i+1] << endl; 
+        
         swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]);
     
         double atualFObj = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
         
         if( atualFObj > melhorFObj){
             //cout << atualFObj << " " << melhorFObj << endl;
-
+        	subiu = false;
             melhorVertice = i+1;
             melhorFObj = atualFObj; 
-            melhorou = true;
+            melhorou = true; 
         } 
     }
     
     for(int i=ladroes[qualMochileiro].caminho.size()-2;i>=verticeCaminha;i--)
         swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]);
+    
+    //Move a cidade para uma posicao atras dela na solução 
+    for(int i=verticeCaminha;i>0;i--){
+
+        swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i-1]);
+    
+        double atualFObj = fObj(ladroes,itens,cidade,distCasas,capacidade,qualMochileiro);
         
+        if( atualFObj > melhorFObj){
+            //cout << atualFObj << " " << melhorFObj << endl;
+        	subiu = true;
+            melhorVertice = i-1;
+            melhorFObj = atualFObj; 
+            melhorou = true;
 
-    if(melhorou){
-        for(int i=verticeCaminha; i<melhorVertice;i++){
-            swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i+1]);
-        }
-
+        } 
+    }
+    
+    for(int i=0;i<verticeCaminha;i++)
+        swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]);
+        
+	if(melhorou){
+    	if(!subiu){
+	        for(int i=verticeCaminha; i<melhorVertice;i++){
+	            swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i+1]);
+	        }
+    	}else{
+    		for(int i=verticeCaminha; i>melhorVertice;i--){
+	            swap(ladroes[qualMochileiro].caminho[i], ladroes[qualMochileiro].caminho[i-1]);
+	        }
+    	}
+   
         return true;
     }
-
     return false;
 }
 
