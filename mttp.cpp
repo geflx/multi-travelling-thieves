@@ -64,6 +64,8 @@ int dist(Casa a, Casa b){
 void imprimeInstancia( const vector<Mochileiro> &ladroes, const vector<Casa> &cidade, ofstream& saida){
 
     for(int i=0; i<ladroes.size(); i++){
+
+    	//if(ladroes[i].caminho.empty()) continue;
         
         saida<<"[";
         
@@ -114,6 +116,7 @@ void imprimeInstancia( const vector<Mochileiro> &ladroes, const vector<Casa> &ci
     }
 }
 
+//Debug
 void imprimeInstancia2( const vector<Item> &itens, const vector<Mochileiro> &ladroes, const vector<Casa> &cidade){
 
     ofstream saida("saida2.txt");
@@ -168,6 +171,68 @@ void imprimeInstancia2( const vector<Item> &itens, const vector<Mochileiro> &lad
         saida<<"]\n";
     }
     saida.close();
+}
+
+//Usada
+void imprimeInstancia3( const vector<Mochileiro> &ladroes, const vector<Casa> &cidade, const int qualGRASP, 
+	const double valorFOBJ){
+
+	cout << "\nInstancia: " << instancia << "\n";
+	cout << "Número de mochileiros: " << ladroes.size() << endl;
+	cout << "GRASP utilizada: " << qualGRASP << endl;
+	cout << "Valor da fOBJ: " << valorFOBJ << endl;
+    
+    for(int i=0; i<ladroes.size(); i++){
+
+    	//if(ladroes[i].caminho.empty()) continue;
+        
+        cout<<"[";
+        
+        for(int j=0; j<ladroes[i].caminho.size(); j++){
+            
+            //Imprime as cidades que o ladrao "i" passou
+            cout<< ladroes[i].caminho[j]+1;
+            
+            if( j!= ladroes[i].caminho.size()-1 ){
+                cout<<",";
+            }
+            
+        }
+        
+        cout<<"]\n";
+        cout<<"["; 
+        
+        //Contando quantas virgulas teremos que imprimir
+        
+        int virgulas=0;
+
+        for(int j=0; j< ladroes[i].mochila.size(); j++){
+            if(ladroes[i].mochila[j].size()!=0){
+                virgulas++;
+            }
+        }
+        virgulas-=1;
+        
+        for(int j=0; j< ladroes[i].mochila.size(); j++){
+            
+            if(ladroes[i].mochila[j].size()==0){ // Sem itens roubados pelo ladrao i na cidade j
+                continue;
+            }
+            
+            for(int k=0; k< ladroes[i].mochila[j].size(); k++){
+                cout<< ladroes[i].mochila[j][k]+1;
+                
+                if(k!=ladroes[i].mochila[j].size()-1)
+                    cout<<",";
+            }
+            
+            if( virgulas>0 ){ //Se ainda posso imprimir uma virgula
+                virgulas--;
+                cout<<",";
+            }       
+        }
+        cout<<"]\n";
+    }
 }
 
 void imprimir(vector<Mochileiro>&ladroes){
@@ -1789,12 +1854,70 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
     return;
 }
 
-void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCasas, int i, ofstream& saida, int esc){
+void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
+	int qualGRASP){
+
+	vector<Casa> cidadeOtima;
+    vector<Mochileiro> ladroesOtima;
+
+    cidadeOtima = cidade;
+    ladroesOtima = ladroes;
+
+    long double melhorFObj = numeric_limits<double>::lowest();
+
+    int cont =1;
+
+    while(true){	
+	    if(!temTempo() || cont>100){
+	    	cidade = cidadeOtima;
+    		ladroes = ladroesOtima;
+    		return;
+	    }
+
+    	vector<Casa> cidadeClone;
+        vector<Mochileiro> ladroesClone;
+        
+        cidadeClone = cidade;
+        ladroesClone = ladroes;
+        
+        cont++;
+
+		if(qualGRASP == 0)
+			greedy1(cidadeClone,itens,ladroesClone,distCasas, cont);
+		else if(qualGRASP == 1)
+			greedy2(cidadeClone,itens,ladroesClone,distCasas, cont);
+		else if(qualGRASP ==2)
+			greedy3(cidadeClone,itens,ladroesClone,distCasas, cont);	
+
+		VND(cidadeClone,itens,ladroesClone,distCasas);
+  
+        long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas);
+       
+        if( atualFObj > melhorFObj){
+            cidadeOtima = cidadeClone;
+            ladroesOtima = ladroesClone; 
+            cout << atualFObj << endl;
+            melhorFObj = atualFObj;
+        }
+    }
+}
+
+void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCasas, int i, ofstream& saida, int esc,
+	int qualGRASP){
         
     nMochileiros =i;
 
     vector<Mochileiro> ladroes(nMochileiros);
 
+	//-----------GRASP----------------
+    if(esc == 0){
+    	GRASP(cidade,itens,ladroes,distCasas,qualGRASP);
+	    double grr = fObj(ladroes, itens, cidade, distCasas);  
+	    imprimeInstancia3(ladroes,cidade,qualGRASP,grr);
+	    imprimeInstancia(ladroes,cidade,saida);
+	   	//imprimir(ladroes);
+		//cout<<"\nNumeroLadroes (" << i << ")  temos GRASP : "<< grr << "\n";
+	}
 	//-----------melhorGreedy----------------
     if(esc == 1){
     	melhorGreedy(cidade,itens,ladroes,distCasas);
@@ -1871,12 +1994,13 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 
 void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCasas, ofstream& saida, int esc){
 
-    for(int i=1;i<5;i++){
-        mttp(cidade,itens,distCasas,i,saida,esc);
-		limpeza(cidade);
-        saida << "\n";
-    }
-    mttp(cidade,itens,distCasas,5,saida,esc);   
+	for(int j=0;j<=2;j++){ // Para cada GRASP
+	    for(int i=1;i<=5;i++){ // Para cada Mochileiro
+    	    mttp(cidade,itens,distCasas,i,saida,esc,j);
+			limpeza(cidade);
+    		saida << "\n";
+    	}
+    }   
 }
 
 int main( int argc, char** argv ){
@@ -1892,10 +2016,7 @@ int main( int argc, char** argv ){
     leitura3(itens);
 
     prenche(cidade, itens); 
-    
-    //imprimiCasas(cidade);
-    //imprimiItens(itens);
-    
+
     vector<vector<int> > distCasas(dimensao,vector<int>(dimensao,0));
     
     calculaDistCasas(cidade,distCasas);
@@ -1906,15 +2027,10 @@ int main( int argc, char** argv ){
     
     start = time(NULL);
 
-    if(argc <3 || argc >3 ){
-        cout << "Quantidade de argumentos invalida!!" << endl;
-        cout << "Coloca a quantidade de mochileiros OTÁRIO" << endl;
-        cout << "Coloca as heuristicas que serao utilizadas OTÁRIO" << endl;
-    }
-    else if(atoi(argv[1]) == 6 )
+    if(atoi(argv[1]) == 6 )
         mttp(cidade, itens, distCasas,saida,atoi(argv[2]));
     else
-        mttp(cidade, itens, distCasas, atoi(argv[1]),saida,atoi(argv[2]));
+        mttp(cidade, itens, distCasas, atoi(argv[1]),saida,atoi(argv[2]),atoi(argv[3]));
     
     saida.close();
 }  
