@@ -177,7 +177,7 @@ void imprimeInstancia2( const vector<Item> &itens, const vector<Mochileiro> &lad
 void imprimeInstancia3( const vector<Mochileiro> &ladroes, const vector<Casa> &cidade, const int qualGRASP, 
 	const double valorFOBJ){
 
-	cout << "\nInstancia: " << instancia << "\n";
+	cout << "\nInstancia: " << instancia << "\n" << "Tipo: " << tipo << "\nnItens:" << nItem << endl;
 	cout << "Número de mochileiros: " << ladroes.size() << endl;
 	cout << "GRASP utilizada: " << qualGRASP << endl;
 	cout << "Valor da fOBJ: " << valorFOBJ << endl;
@@ -1896,7 +1896,6 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
         if( atualFObj > melhorFObj){
             cidadeOtima = cidadeClone;
             ladroesOtima = ladroesClone; 
-            cout << atualFObj << endl;
             melhorFObj = atualFObj;
         }
     }
@@ -1994,7 +1993,7 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 
 void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCasas, ofstream& saida, int esc){
 
-	for(int j=0;j<=2;j++){ // Para cada GRASP
+	for(int j=0;j<=1;j++){ // Para cada GRASP
 	    for(int i=1;i<=5;i++){ // Para cada Mochileiro
     	    mttp(cidade,itens,distCasas,i,saida,esc,j);
 			limpeza(cidade);
