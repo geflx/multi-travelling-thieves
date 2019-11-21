@@ -1686,7 +1686,6 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
     	//cout << "Estou com: " << fixed << setprecision(2) << fObj( ladroes, itens, cidade, distCasas ) << endl;
     	
     	if(!temTempo()){
-    		cout<<"Retornei em\n";
     		return;
     	}
 
@@ -1720,44 +1719,71 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
         //Entao uso grasp!!!
         for(int i=0;i<cidade.size();i++){
-        	for(bool j: cidade[i].visited){
-        		j=false;
-        	}
+            for(bool j: cidade[i].visited){
+                j=false;
+            }
         }
         melhorGreedy(cidade,itens,ladroes,distCasas);
     }
-    int nbiter = 10;
-
     vector<Mochileiro> bestRoubo = ladroes;
+    vector<Casa> bestCidade = cidade;
     
     double bestRouboValor = fObj(bestRoubo, itens, cidade, distCasas);
 
     // cout<<"GRASP comecou com "<<bestRouboValor<<endl;
 
-    for(int iter= 0 ; iter<nbiter; iter++){
-    	if(!temTempo()){
-    		ladroes = bestRoubo;
-    		return;
-    	}
+    int nbiter=10;
 
+    if(dimensao>3000){
+        nbiter= 10;
+    }else if(dimensao>2000){
+        nbiter= 20;
+    }else if( dimensao>1000){
+        nbiter= 50;
+    }else{
+        nbiter=100;
+    }
+
+    while(nbiter--){
+
+        if(!temTempo()){
+            ladroes = bestRoubo;
+            cidade = bestCidade;   
+        }
         for(int i=0;i<ladroes.size();i++){
+
+            //CASO ESPECIAL: Nao mexe com ladrao que passa so em uma cidade
+            if( ladroes[i].caminho.size() == 1)
+                continue;
 
             priority_queue<pair<double,int>> goodshit;
 
             int sizeCaminho = ladroes[i].caminho.size();
 
-            for(int j=0;j < ladroes[i].caminho.size(); j++){
+
+            for(int j=0;j < sizeCaminho ; j++){
+
                 double lucroCidade = 0;
                 int qualCidade = ladroes[i].caminho[j];
-                // cout<<"vo da pau\n";
+                
                 for(int k=0;k < ladroes[i].mochila[ qualCidade].size(); k++){
+                    
                     lucroCidade += (itens[ladroes[i].mochila[qualCidade][k]].lucro)/(itens[ladroes[i].mochila[qualCidade][k]].peso);
+
                 }
 
-                goodshit.push( { (-1)*lucroCidade, qualCidade });  //Posicao da cidade!
+                int pesoDistancia = 0;
+                if( j==0 || j==(sizeCaminho-1) ){
+                    pesoDistancia+= distCasas[ 0][ qualCidade+1];
+                }else{
+                    pesoDistancia+= distCasas[ ladroes[i].caminho[j-1]+1][ qualCidade+1];
+                }
+
+                pesoDistancia/=10;
+
+                 int fatorDecisivo = lucroCidade - pesoDistancia;
+                goodshit.push( { (-1)*fatorDecisivo, qualCidade }); 
             }   
-            // cout<<"Terminei de colocar cidades na PQ..\n";
-            // Mochileiro salvaBagunca = ladroes[i];
 
             int qtoBaguncar = ceil(sizeCaminho * 0.5);
 
@@ -1771,9 +1797,12 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
                         break;
                     }
                 }
+                if( posiCidade == -1 ) continue; //Evitar erros
+
                 int randomTiraCidade = rand()%100;
 
-                if( randomTiraCidade <40){ //20% de chance de tirar a cidade
+                if( randomTiraCidade <40){ //40% de chance de tirar a cidade
+
                     for(int u=posiCidade; u<ladroes[i].caminho.size()-1;u++ ){
                         ladroes[i].caminho[u]=ladroes[i].caminho[u+1];
                     }
@@ -1790,12 +1819,16 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
                             ladroes[i].pesoMochila-= itens[cidade[ qualCidade].itemCasa[u].index ].peso;
                         }
                     }
+
+
                     ladroes[i].mochila[qualCidade].clear();
-                    // cout<<"Removi a cidade e seus itens.\n";
 
                 }else{
 
-                    //Tirar ou nao os itens
+
+                    //Caso especial: Somente um item na cidade!!
+                    // Nao vou tratar por enquanto
+
                     unordered_set<int> removidos;
 
                     vector<int> novaMochila;
@@ -1815,6 +1848,13 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
                     }
                     // cout<<"Escolhi quais serao removidos.\n";
+
+                    if( novaMochila.size() == 0){ //Nao remove a cidade que tem so um item
+                        goodshit.pop();
+                        continue;
+
+                    }
+
                     if( removidos.size()!=0){
                         ladroes[ i ].mochila[qualCidade] = novaMochila;
 
@@ -1829,28 +1869,33 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
                         }
                         // cout<<"Removi os itens a serem removidos\n.";
                     }
+                    
                 }
                 goodshit.pop();
             }
         }
-        //Chama a VND
-        // double temp = fObj(ladroes, itens, cidade, distCasas, capacidade);
+
         // cout<<"Antes de chamar a VND: "<<temp<<endl;
 
         VND(cidade,itens,ladroes,distCasas);
-        // double temp2 = fObj(ladroes, itens, cidade, distCasas, capacidade);
         // cout<<"depois de chamar a VND: "<<temp2<<endl;
-   
+
+
         double novaObj = fObj(ladroes, itens, cidade, distCasas);
+    
+        // cout<<novaObj<<endl;
         if( novaObj > bestRouboValor){
 
             // cout<<"ILS melhorou "<<novaObj-bestRouboValor<<endl;
             bestRouboValor = novaObj;
             bestRoubo = ladroes;
+            bestCidade = cidade;
         }
     }
 
+
     ladroes = bestRoubo;
+    cidade = bestCidade;
     return;
 }
 
@@ -1942,23 +1987,32 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 
     //-----------(melhorGreedy + VND) + ILS ----------------
     if(esc == 3){
-    	double res_mix=-1;
 		vector<Mochileiro> bestVndIls;
 
 		melhorGreedy(cidade,itens,ladroes,distCasas);
 	    VND(cidade,itens,ladroes,distCasas);
     	
-	    for(int i=0;i<10;i++){
-	    	vector<Mochileiro> ladroes3 = ladroes;
+
+        bestVndIls = ladroes;
+        vector<Casa> bestCidade = cidade;
+
+
+        double res_mix= fObj(ladroes, itens, cidade, distCasas);
+
+	    while( temTempo()){
+
+		    ILS(cidade,itens,ladroes,distCasas, true);
 		    
-		    ILS(cidade,itens,ladroes3,distCasas, true);
-		    
-		    double newobj = fObj(ladroes3, itens, cidade, distCasas);
+		    double newobj = fObj(ladroes, itens, cidade, distCasas);
+
 		    if( newobj > res_mix){
-		    	bestVndIls = ladroes3;
+                bestCidade = cidade;
+		    	bestVndIls = ladroes;
 		    	res_mix = newobj;
-		    }  
+		    }
 	    }
+
+        cidade = bestCidade;
 	    imprimir(bestVndIls);
 	    imprimeInstancia(bestVndIls,cidade,saida);
 	    imprimeInstancia2(itens,bestVndIls,cidade);
