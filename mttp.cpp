@@ -1868,7 +1868,7 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
     int cont =1;
 
     while(true){	
-	    if(!temTempo() || cont>100){
+	    if(!temTempo() || cont>2){
 	    	cidade = cidadeOtima;
     		ladroes = ladroesOtima;
     		return;

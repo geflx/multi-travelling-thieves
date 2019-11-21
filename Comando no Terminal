@@ -1,0 +1,5 @@
+for file in a_uncorrelated,_similar_weights/*;do ./a.out < $file >> resUSW.txt; done 
+
+for file in a_uncorrelated/*;do ./a.out < $file >> resUncorr.txt; done 
+
+for file in a_bounded_strongly_corr/*;do ./a.out < $file >> resBounded.txt; done 
