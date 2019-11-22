@@ -11,6 +11,8 @@ int dimensao, nItem, capacidade, nMochileiros;
 double vMin, vMax, aluguel;
 long double v; //Constante da função Objetivo
 
+int nIteracoes;
+
 time_t start;
 
 // Guarda as informacoes referente a cada ladrão  
@@ -51,8 +53,9 @@ struct Casa{
 };
 
 bool temTempo(){
-	if(time(NULL) - start > 600)
+	if(time(NULL) - start > 10){
 		return false;
+	}
 	return true;
 }
 
@@ -1202,25 +1205,11 @@ void Greedy1(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
 
     long double melhorFObj = numeric_limits<double>::lowest();
 
-    // int nIteracoes;
-
-    // if(nItem < 1000){
-    //     nIteracoes = dimensao;
-    // }else if(nItem < 5000) {
-    //     nIteracoes =  60;
-    // }else if(nItem < 10000){
-    //     nIteracoes = 40;
-    // }else{
-    //     nIteracoes = 40;
-    // }
+    int nIteracoes;
     
-    // for(int i=0;i<nIteracoes;i++){
+    for(int i=0;i<nIteracoes;i++){
     
-    int cont =1;
-
-    while(true){
-
-    	if(!temTempo() || cont>100){
+    	if(!temTempo()){
 	    	cidade = cidadeOtima;
     		ladroes = ladroesOtima;
     		return;
@@ -1231,19 +1220,8 @@ void Greedy1(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
         
         cidadeClone = cidade;
         ladroesClone = ladroes;
-        
-        // if(nItem < 1000)
-        //     greedy1(cidadeClone,itens,ladroesClone,distCasas,((log10(i+10))/(log10(3))));
-        // else if(nItem < 5000)
-        //     greedy1(cidadeClone,itens,ladroesClone,distCasas, sqrt(i)+1);
-        // else if(nItem < 10000)
-        //     greedy1(cidadeClone,itens,ladroesClone,distCasas, i+1 );
-        // else
-        //     greedy1(cidadeClone,itens,ladroesClone,distCasas, (i+3)/3 );
-        
-        cont++;
 
-        greedy1(cidadeClone,itens,ladroesClone,distCasas,cont);
+        greedy1(cidadeClone,itens,ladroesClone,distCasas,i+1);
 
         long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas);
         
@@ -1255,8 +1233,6 @@ void Greedy1(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
             melhorFObj = atualFObj;
         }
     }
-
-    //cout << "Greedy1: " << melhorFObj << endl;
     cidade = cidadeOtima;
     ladroes = ladroesOtima;
 }
@@ -1369,24 +1345,11 @@ void Greedy2(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
 
     long double melhorFObj = numeric_limits<double>::lowest();
 
-    // int nIteracoes;
+    int nIteracoes;
 
-    // if(nItem < 1000){
-    //     nIteracoes = dimensao;
-    // }else if(nItem < 5000) {
-    //     nIteracoes =  60;
-    // }else if(nItem < 10000){
-    //     nIteracoes = 40;
-    // }else{
-    //     nIteracoes = 40;
-    // }
-    
-    //for(int i=0;i<nIteracoes;i++){
+    for(int i=0;i<nIteracoes;i++){
 
-    int cont=1;
-    while(true){
-
-    	if(!temTempo() || cont>100){
+    	if(!temTempo()){
 	    	cidade = cidadeOtima;
     		ladroes = ladroesOtima;
     		return;
@@ -1408,8 +1371,7 @@ void Greedy2(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
         // else
         //     greedy2(cidadeClone,itens,ladroesClone,distCasas, (i+3)/3 );
         
-        cont++;
-        greedy2(cidadeClone,itens,ladroesClone,distCasas, cont );
+        greedy2(cidadeClone,itens,ladroesClone,distCasas,i+1);
 
         long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas);
 
@@ -1552,24 +1514,11 @@ void Greedy3(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
 
     long double melhorFObj = numeric_limits<double>::lowest();
 
- //    int nIteracoes;
- //    int multi;
-
- //    if(nItem < 1000){
- //    	multi = 4;
-	//     nIteracoes = 1;
- //    }
-	// else{
-	// 	multi = 2;
-	//     nIteracoes = 10;	
-	// }
-
- //    for(int i=0;i<nIteracoes;i++){
-
     int cont =1;
+    
+    for(int i=0;i<nIteracoes;i++){
 
-    while(true){	
-	    if(!temTempo() || cont>100){
+        if(!temTempo() || cont>100){
 	    	cidade = cidadeOtima;
     		ladroes = ladroesOtima;
     		return;
@@ -1598,9 +1547,6 @@ void Greedy3(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
 
         }
     }
-
-	//cout << "Greedy3: " << melhorFObj << endl;
-    
     cidade = cidadeOtima;
     ladroes = ladroesOtima;
 }
@@ -1623,6 +1569,7 @@ void melhorGreedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> 
     Greedy1(cidadeZero,itens,ladroesZero,distCasas);
     
     atualFObj = fObj(ladroesZero, itens, cidadeZero, distCasas);
+    
     if(atualFObj > melhorFObj){
         
         melhorFObj = atualFObj;
@@ -1631,8 +1578,9 @@ void melhorGreedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> 
     
     }
 
-    if(!temTempo())
+    if(!temTempo()){
     	return;
+    }
 
     //Grasp 2
     cidadeZero = cidade;
@@ -1641,6 +1589,7 @@ void melhorGreedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> 
     Greedy2(cidadeZero,itens,ladroesZero,distCasas);
     
     atualFObj = fObj(ladroesZero, itens, cidadeZero, distCasas);
+    
     if(atualFObj > melhorFObj){
         melhorFObj = atualFObj;
         cidadeOtima = cidadeZero;
@@ -1656,7 +1605,7 @@ void melhorGreedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> 
     ladroesZero = ladroes;
 
     Greedy3(cidadeZero,itens,ladroesZero,distCasas);
-
+    
     atualFObj = fObj(ladroesZero, itens, cidadeZero, distCasas);
   
     if(atualFObj > melhorFObj){
@@ -1913,7 +1862,7 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
     int cont =1;
 
     while(true){	
-	    if(!temTempo() || cont>2){
+	    if(!temTempo()){
 	    	cidade = cidadeOtima;
     		ladroes = ladroesOtima;
     		return;
@@ -1992,18 +1941,14 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 		melhorGreedy(cidade,itens,ladroes,distCasas);
 	    VND(cidade,itens,ladroes,distCasas);
     	
-
-        bestVndIls = ladroes;
+    	bestVndIls = ladroes;
         vector<Casa> bestCidade = cidade;
-
 
         double res_mix= fObj(ladroes, itens, cidade, distCasas);
 
-	    while( temTempo()){
-
-		    ILS(cidade,itens,ladroes,distCasas, true);
-		    
-		    double newobj = fObj(ladroes, itens, cidade, distCasas);
+        while( temTempo()){
+	    	ILS(cidade,itens,ladroes,distCasas, true);
+			double newobj = fObj(ladroes, itens, cidade, distCasas);
 
 		    if( newobj > res_mix){
                 bestCidade = cidade;
@@ -2013,10 +1958,16 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 	    }
 
         cidade = bestCidade;
-	    imprimir(bestVndIls);
+	    ladroes = bestVndIls;
+
+	    imprimeInstancia3(ladroes,cidade,qualGRASP,res_mix);
+	    imprimeInstancia(ladroes,cidade,saida);
+	   	    
+	    /*imprimir(bestVndIls);
 	    imprimeInstancia(bestVndIls,cidade,saida);
 	    imprimeInstancia2(itens,bestVndIls,cidade);
-	    cout<<"\nNumeroLadroes (" << i << ")  temos GRASP->VND->ILS : "<< res_mix << "\n";
+	    */
+	    //cout<<"\nNumeroLadroes (" << i << ")  temos GRASP->VND->ILS : "<< res_mix << "\n";
     }
 
     //-----------melhorGreedy + ILS ----------------
@@ -2047,13 +1998,36 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 
 void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCasas, ofstream& saida, int esc){
 
-	for(int j=0;j<=1;j++){ // Para cada GRASP
-	    for(int i=1;i<=5;i++){ // Para cada Mochileiro
-    	    mttp(cidade,itens,distCasas,i,saida,esc,j);
+	if(esc ==0){ //GRASP
+		for(int j=0;j<=1;j++){ // Para cada GRASP
+		    for(int i=1;i<=5;i++){ // Para cada Mochileiro
+	    	    start = time(NULL);
+				mttp(cidade,itens,distCasas,i,saida,esc,j);
+				limpeza(cidade);
+	    		saida << "\n";
+	    	}
+	    }   
+	}else{ //ILS
+		for(int i=1;i<=5;i++){ // Para cada Mochileiro
+			start = time(NULL);
+			mttp(cidade,itens,distCasas,i,saida,esc,0);
 			limpeza(cidade);
     		saida << "\n";
     	}
-    }   
+	}
+}
+
+void contIter(){
+
+    if(nItem < 1000){
+        nIteracoes = 100;
+    }else if(nItem < 5000) {
+        nIteracoes =  60;
+    }else if(nItem < 10000){
+        nIteracoes = 40;
+    }else{
+        nIteracoes = 40;
+    }
 }
 
 int main( int argc, char** argv ){
@@ -2078,8 +2052,14 @@ int main( int argc, char** argv ){
 
     v = (vMax-vMin) / capacidade*(1.0); //Constante da função Objetivo
     
+    //Primeiro argumento: Número de Mochileiros
+    //Segundo argumento: Heuristica escolhida
+    //Terceiro argumento: GRASP escolhida
+
     start = time(NULL);
 
+    contIter();
+				
     if(atoi(argv[1]) == 6 )
         mttp(cidade, itens, distCasas,saida,atoi(argv[2]));
     else
