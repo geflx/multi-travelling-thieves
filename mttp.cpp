@@ -181,6 +181,7 @@ void imprimeInstancia3( const vector<Mochileiro> &ladroes, const vector<Casa> &c
 	string s2(tipo.begin(),tipo.end()-1);
 
 	cout << " Instancia: " << instancia << "_n" << nItem << '_' << s2 << "_0" << cidade[1].itemCasa.size() << endl;
+	cout << "Número de Mochileiros: " << nMochileiros << endl;
 	cout << "Grasp Utilizada: " << qualGRASP << endl;
     for(int i=0; i<ladroes.size(); i++){
 
@@ -233,6 +234,7 @@ void imprimeInstancia3( const vector<Mochileiro> &ladroes, const vector<Casa> &c
         }
         cout<<"]\n";
     }
+    cout << "\n" << endl;
 }
 
 void imprimir(vector<Mochileiro>&ladroes){
@@ -1637,9 +1639,7 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
     }
 
     bestRouboValor = fObj(ladroes, itens, cidade, distCasas);
-
-    imprimeInstancia3(ladroes,cidade,0,bestRouboValor);
-		
+	
     vector<Mochileiro> bestRoubo = ladroes;
     vector<Casa> bestCidade = cidade;   
     
