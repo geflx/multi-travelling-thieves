@@ -176,12 +176,12 @@ void imprimeInstancia2( const vector<Item> &itens, const vector<Mochileiro> &lad
 void imprimeInstancia3( const vector<Mochileiro> &ladroes, const vector<Casa> &cidade, const int qualGRASP, 
 	const double valorFOBJ){
 
-	cout << "\nInstancia: " << instancia << "\n" << "Tipo: " << tipo << "\nnItens:" << nItem << endl;
-	cout << "Número de mochileiros: " << ladroes.size() << endl;
-	cout << "GRASP utilizada: " << qualGRASP << endl;
-	cout << "Valor da fOBJ: " << valorFOBJ << endl;
-    
+	cout << "FOBJ: " << valorFOBJ;
 
+	string s2(tipo.begin(),tipo.end()-1);
+
+	cout << " Instancia: " << instancia << "_n" << nItem << '_' << s2 << "_0" << cidade[1].itemCasa.size() << endl;
+	cout << "Grasp Utilizada: " << qualGRASP << endl;
     for(int i=0; i<ladroes.size(); i++){
 
     	if(ladroes[i].caminho.empty()) continue;
@@ -980,7 +980,7 @@ bool trocaDuasCidades(vector<Casa> &cidade, vector<Item> &itens, vector<Mochilei
         swap(ladroes[qualMochileiro].caminho[i],ladroes[qualMochileiro].caminho[i+1]); 
     }
 
-    if(melhorou){
+    if(melhorou){    
         swap(ladroes[qualMochileiro].caminho[melhorVertice], ladroes[qualMochileiro].caminho[melhorVertice2]);
         return true;
     }
@@ -1565,7 +1565,6 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
     int cont=0;
     valorFOBJ= fObj( ladroes, itens, cidade, distCasas);
     
-    int cheguei = 0;
     while(true){
     	
     	if(!temTempo()){
@@ -1590,6 +1589,31 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
         break;
     }
+
+  //   while(true){
+    	
+  //   	// if(!temTempo()){
+  //   	// 	return;
+  //   	// }
+
+  //       while(trocaCidadeEntreLadroes(cidade,itens,ladroes,distCasas)) continue;
+    	
+		// if(addItemCidadeRota(cidade,itens,ladroes,distCasas)) continue;
+
+  //       if(addItemCidadeNaoRota(cidade,itens,ladroes,distCasas)) continue;
+    	
+  //       if(removeItem(cidade,itens,ladroes,distCasas)) continue;
+
+  //       if(removeCidade(cidade,itens,ladroes,distCasas)) continue;
+		
+		// if(trocaDuasCidades(cidade,itens,ladroes,distCasas)) continue;
+
+		// if(moveUmaCidade(cidade,itens,ladroes,distCasas)) continue;
+
+		// if(trocaCidadeRepetidaEntreLadroes(cidade,itens,ladroes,distCasas)) continue;
+    	
+  //       break;
+  //   }
     
     valorFOBJ = fObj( ladroes, itens, cidade, distCasas);    
 }
@@ -1840,9 +1864,6 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
     	GRASP(cidade,itens,ladroes,distCasas,qualGRASP);
 	    double grr = fObj(ladroes, itens, cidade, distCasas);  
 	    imprimeInstancia3(ladroes,cidade,qualGRASP,grr);
-	    imprimeInstancia(ladroes,cidade,saida);
-	   	//imprimir(ladroes);
-		//cout<<"\nNumeroLadroes (" << i << ")  temos GRASP : "<< grr << "\n";
 	}
 	//-----------melhorGreedy----------------
     if(esc == 1){
@@ -1850,10 +1871,6 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 	    double grr = fObj(ladroes, itens, cidade, distCasas);  
 	    
 	    imprimeInstancia3(ladroes,cidade,0,grr);
-	    
-	    //imprimeInstancia(ladroes,cidade,saida);
-	   	//imprimir(ladroes);
-		//cout<<"\nNumeroLadroes (" << i << ")  temos GRASP : "<< grr << "\n";
 	}
 	
 	//-----------melhorGreedy + VND----------------
@@ -1864,10 +1881,7 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
   
 		double atual = fObj( ladroes, itens, cidade, distCasas);
 		
-		imprimeInstancia(ladroes,cidade,saida);
-    	imprimir(ladroes);
-    	
-    	cout<<"\nNumeroLadroes (" << i << ")  temos VND: "<< atual << "\n";
+		imprimeInstancia3(ladroes,cidade,0,atual);
     }
 
     //-----------(melhorGreedy + VND) + ILS ----------------
@@ -1898,13 +1912,6 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 	    ladroes = bestVndIls;
 
 	    imprimeInstancia3(ladroes,cidade,qualGRASP,res_mix);
-	    imprimeInstancia(ladroes,cidade,saida);
-	   	    
-	    /*imprimir(bestVndIls);
-	    imprimeInstancia(bestVndIls,cidade,saida);
-	    imprimeInstancia2(itens,bestVndIls,cidade);
-	    */
-	    //cout<<"\nNumeroLadroes (" << i << ")  temos GRASP->VND->ILS : "<< res_mix << "\n";
     }
 
     //-----------melhorGreedy + ILS ----------------
