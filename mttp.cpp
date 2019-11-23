@@ -47,7 +47,7 @@ struct Casa{
 };
 
 bool temTempo(){
-	if(time(NULL) - start > 5){
+	if(time(NULL) - start > 600){
 		return false;
 	}
 	return true;
@@ -180,7 +180,14 @@ void imprimeInstancia3( const vector<Mochileiro> &ladroes, const vector<Casa> &c
 
 	string s2(tipo.begin(),tipo.end()-1);
 
-	cout << " Instancia: " << instancia << "_n" << nItem << '_' << s2 << "_0" << cidade[1].itemCasa.size() << endl;
+	int qual;
+
+	if(cidade[1].itemCasa.size() == 10)
+		qual = 7;
+	else
+		qual = 3;
+
+	cout << " Instancia: " << instancia << "_n" << nItem << '_' << s2 << "_0" << qual << endl;
 	cout << "Número de Mochileiros: " << nMochileiros << endl;
 	cout << "Grasp Utilizada: " << qualGRASP << endl;
     for(int i=0; i<ladroes.size(); i++){
@@ -1620,10 +1627,7 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
     valorFOBJ = fObj( ladroes, itens, cidade, distCasas);    
 }
 
-void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas, 
-	bool reaproveitaSolucao){
-
-    double bestRouboValor;
+void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas, bool reaproveitaSolucao){
 
     if( !reaproveitaSolucao){
 
@@ -1634,15 +1638,12 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
             }
         }
         melhorGreedy(cidade,itens,ladroes,distCasas);
-
-        VND(cidade,itens,ladroes,distCasas);
     }
-
-    bestRouboValor = fObj(ladroes, itens, cidade, distCasas);
-	
     vector<Mochileiro> bestRoubo = ladroes;
-    vector<Casa> bestCidade = cidade;   
+    vector<Casa> bestCidade = cidade;
     
+    double bestRouboValor = fObj(bestRoubo, itens, cidade, distCasas);
+
     int nbiter=10;
 
     if(dimensao>3000){
@@ -1667,39 +1668,25 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
             if( ladroes[i].caminho.size() == 1)
                 continue;
 
+
             priority_queue<pair<double,int>> goodshit;
 
             int sizeCaminho = ladroes[i].caminho.size();
+            vector<int> caminhoLadrao( sizeCaminho );
 
+            //Random cities will be removed
             for(int j=0;j < sizeCaminho ; j++){
+                caminhoLadrao[ j ] = ladroes[i].caminho[j];
 
-                double lucroCidade = 0;
-                int qualCidade = ladroes[i].caminho[j];
-                
-                for(int k=0;k < ladroes[i].mochila[ qualCidade].size(); k++){
-                    int cima = itens[ladroes[i].mochila[qualCidade][k]].lucro;
-                    int baixo = itens[ladroes[i].mochila[qualCidade][k]].peso;
-                    lucroCidade += cima/baixo;
-                }
-
-                int pesoDistancia = 0;
-                if( j==0 || j==(sizeCaminho-1) ){
-                    pesoDistancia+= distCasas[ 0][ qualCidade+1];
-                }else{
-                    pesoDistancia+= distCasas[ ladroes[i].caminho[j-1]+1][ qualCidade+1];
-                }
-
-                pesoDistancia/=10;
-
-                int fatorDecisivo = lucroCidade - pesoDistancia;
-                goodshit.push( { (-1)*fatorDecisivo, qualCidade }); 
             }   
+
+            random_shuffle( caminhoLadrao.begin(), caminhoLadrao.end());
 
             int qtoBaguncar = ceil(sizeCaminho * 0.5);
 
             for(int j=0; j<qtoBaguncar; j++){
 
-                int qualCidade = goodshit.top().second;
+                int qualCidade = caminhoLadrao[ j ];
                 int posiCidade = -1;
                 for(int i1=0; i1< ladroes[i].caminho.size();i1++){
                     if( ladroes[i].caminho[i1] == qualCidade){
@@ -1734,6 +1721,8 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
                     ladroes[i].mochila[qualCidade].clear();
 
                 }else{
+
+
                     //Caso especial: Somente um item na cidade!!
                     // Nao vou tratar por enquanto
 
@@ -1760,6 +1749,7 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
                     if( novaMochila.size() == 0){ //Nao remove a cidade que tem so um item
                         goodshit.pop();
                         continue;
+
                     }
 
                     if( removidos.size()!=0){
@@ -1778,7 +1768,6 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
                     }
                     
                 }
-                goodshit.pop();
             }
         }
 
@@ -1787,8 +1776,9 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
         VND(cidade,itens,ladroes,distCasas);
         // cout<<"depois de chamar a VND: "<<temp2<<endl;
 
+
         double novaObj = fObj(ladroes, itens, cidade, distCasas);
-        
+    
         // cout<<novaObj<<endl;
         if( novaObj > bestRouboValor){
 
@@ -1804,7 +1794,6 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
     return;
 }
-
 void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
 	int qualGRASP){
 
@@ -1945,7 +1934,20 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 	if(esc ==0){ //GRASP
 		for(int j=0;j<=2;j++){ // Para cada GRASP
 		    for(int i=1;i<=5;i++){ // Para cada Mochileiro
-	    	    start = time(NULL);
+
+		    	int qual;
+
+				if(cidade[1].itemCasa.size() == 10)
+					qual = 7;
+				else
+					qual = 3;
+
+				string s2(tipo.begin(),tipo.end()-1);
+
+	    	    cerr << "\nInstancia: " << instancia << "_n" << nItem << '_' << s2 << "_0" << qual;
+				cerr << "\nNúmero de Mochileiros: " << nMochileiros+1 << endl;
+
+				start = time(NULL);
 				mttp(cidade,itens,distCasas,i,saida,esc,j);
 				limpeza(cidade);
 	    		saida << "\n";
@@ -1953,6 +1955,19 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 	    }   
 	}else{ //ILS
 		for(int i=1;i<=5;i++){ // Para cada Mochileiro
+
+			int qual;
+
+			if(cidade[1].itemCasa.size() == 10)
+				qual = 7;
+			else
+				qual = 3;
+
+			string s2(tipo.begin(),tipo.end()-1);
+
+    	    cerr << "\nInstancia: " << instancia << "_n" << nItem << '_' << s2 << "_0" << qual;
+			cerr << "\nNúmero de Mochileiros: " << nMochileiros+1 << endl;
+
 			start = time(NULL);
 			mttp(cidade,itens,distCasas,i,saida,esc,0);
 			limpeza(cidade);
@@ -1970,7 +1985,7 @@ void contIter(){
     }else if(nItem < 10000){
         nIteracoes = 40;
     }else{
-        nIteracoes = 40;
+        nIteracoes = 20;
     }
 }
 
