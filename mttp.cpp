@@ -1178,8 +1178,6 @@ void Greedy1(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
 
     long double melhorFObj = numeric_limits<double>::lowest();
 
-    int nIteracoes;
-    
     for(int i=0;i<nIteracoes;i++){
     
     	if(!temTempo()){
@@ -1306,8 +1304,6 @@ void Greedy2(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
     ladroesOtima = ladroes;
 
     long double melhorFObj = numeric_limits<double>::lowest();
-
-    int nIteracoes;
 
     for(int i=0;i<nIteracoes;i++){
 
@@ -1461,11 +1457,9 @@ void Greedy3(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
 
     long double melhorFObj = numeric_limits<double>::lowest();
 
-    int cont =1;
-    
     for(int i=0;i<nIteracoes;i++){
 
-        if(!temTempo() || cont>100){
+        if(!temTempo()){
 	    	cidade = cidadeOtima;
     		ladroes = ladroesOtima;
     		return;
@@ -1476,10 +1470,8 @@ void Greedy3(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
         
         cidadeClone = cidade;
         ladroesClone = ladroes;
-        
-        cont++;
 
-        greedy3(cidadeClone,itens,ladroesClone,distCasas, cont);
+        greedy3(cidadeClone,itens,ladroesClone,distCasas, i+1);
         
         long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas);
         
@@ -1944,7 +1936,7 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCasas, ofstream& saida, int esc){
 
 	if(esc ==0){ //GRASP
-		for(int j=0;j<=1;j++){ // Para cada GRASP
+		for(int j=0;j<=2;j++){ // Para cada GRASP
 		    for(int i=1;i<=5;i++){ // Para cada Mochileiro
 	    	    start = time(NULL);
 				mttp(cidade,itens,distCasas,i,saida,esc,j);
