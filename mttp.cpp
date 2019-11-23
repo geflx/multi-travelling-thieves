@@ -1794,6 +1794,7 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
     return;
 }
+
 void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
 	int qualGRASP){
 
@@ -1945,7 +1946,7 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 				string s2(tipo.begin(),tipo.end()-1);
 
 	    	    cerr << "\nInstancia: " << instancia << "_n" << nItem << '_' << s2 << "_0" << qual;
-				cerr << "\nNúmero de Mochileiros: " << nMochileiros+1 << endl;
+				cerr << "\nNúmero de Mochileiros: " << i << endl;
 
 				start = time(NULL);
 				mttp(cidade,itens,distCasas,i,saida,esc,j);
@@ -1966,7 +1967,7 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 			string s2(tipo.begin(),tipo.end()-1);
 
     	    cerr << "\nInstancia: " << instancia << "_n" << nItem << '_' << s2 << "_0" << qual;
-			cerr << "\nNúmero de Mochileiros: " << nMochileiros+1 << endl;
+			cerr << "\nNúmero de Mochileiros: " << i << endl;
 
 			start = time(NULL);
 			mttp(cidade,itens,distCasas,i,saida,esc,0);
