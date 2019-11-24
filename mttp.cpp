@@ -1496,6 +1496,126 @@ void Greedy3(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
     ladroes = ladroesOtima;
 }
 
+double greedy4(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
+    int qualMochileiro, int cap, int itensPorCidade){
+
+    int iteracao = 0;
+    bool coloqueiAlguem = true;
+    bool coloqueiAlguemAgora = false;
+    
+    double melhorFObj = numeric_limits<double>::lowest();
+
+    while(coloqueiAlguem || iteracao < itensPorCidade){
+       
+        priority_queue<pair<double,pair<int,int>>> custoBeneficio; //Custo beneficio dos itens
+       	
+       	coloqueiAlguem = false;
+       
+        if(ladroes[qualMochileiro].caminho.empty()){
+  			
+            iteracao++;
+  			
+			for(int j=1;j<cidade.size();j++){ //Ignoramos a origem pois nao possui itens
+                
+                for(int k=0;k<cidade[j].itemCasa.size();k++){ //Para todos os itens daquela cidade
+                    int pesoItem = cidade[j].itemCasa[k].peso;  
+
+                    if(!cidade[j].visited[k] && pesoItem <= cap-ladroes[qualMochileiro].pesoMochila){
+                        
+                        ladroes[qualMochileiro].caminho.push_back(j);
+                        ladroes[qualMochileiro].mochila[ j ].push_back(k);
+                    
+                        double atualfObj = fObj(ladroes,itens,cidade,distCasas,qualMochileiro);
+						
+						custoBeneficio.push(make_pair(atualfObj,make_pair(j,k))); 
+                        
+                        ladroes[qualMochileiro].caminho.pop_back();
+                        ladroes[qualMochileiro].mochila[ j ].pop_back();
+                    }
+                }
+            }
+        }
+        else{
+            iteracao++;
+            
+            for(int j=1;j<cidade.size();j++){ //Ignoramos a origem pois nao possui itens
+                
+                for(int k=0;k<cidade[j].itemCasa.size();k++){ //Para todos os itens daquela cidade
+                    int pesoItem = cidade[j].itemCasa[k].peso;  
+
+                    if(!cidade[j].visited[k] && pesoItem <= cap-ladroes[qualMochileiro].pesoMochila){
+                        
+                        ladroes[qualMochileiro].caminho.push_back(j);
+                        ladroes[qualMochileiro].mochila[ j ].push_back(k);
+
+                        bool apagueiCidade = consertaRota(ladroes,qualMochileiro); // Conserta Rota 
+                
+                        double atualfObj = fObj(ladroes,itens,cidade,distCasas,qualMochileiro);
+						
+						if(atualfObj >= melhorFObj*0.9 )
+                        	custoBeneficio.push(make_pair(atualfObj,make_pair(j,k))); 
+
+                        if(!apagueiCidade){
+                        	ladroes[qualMochileiro].caminho.pop_back();
+                        }
+
+                        ladroes[qualMochileiro].mochila[ j ].pop_back();
+                    }
+                }
+            }
+        }
+ 
+        if(!custoBeneficio.empty()){
+            auto escolhido = custoBeneficio.top();
+
+            if(iteracao < 10 || escolhido.first >0){
+                coloqueiAlguem = true;
+               
+                int city = escolhido.second.first;
+                int item = cidade[city].itemCasa[escolhido.second.second].index;
+
+                ladroes[qualMochileiro].caminho.push_back(city);
+                ladroes[qualMochileiro].mochila[ city ].push_back(item);
+                ladroes[qualMochileiro].pesoMochila += itens[item].peso;
+
+                coloqueiAlguemAgora = true;
+
+                cidade[city].visited[ escolhido.second.second ] = true;
+
+                melhorFObj = escolhido.first;
+
+                consertaRota(ladroes,qualMochileiro); // Conserta Rota 
+            }
+        }
+    }
+
+    return coloqueiAlguemAgora;
+}
+
+double greedy4(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas){
+
+    // Defina a capacidade da mochila de cada ladrão 
+    int cap = capacidade/(ladroes.size());
+    
+    vector<bool> v(ladroes.size(),true);
+
+    bool coloqueiAlguem = true;
+    int itensPorCidade = cidade[1].itemCasa.size();
+
+    while(coloqueiAlguem){
+    	coloqueiAlguem = false;
+    	for(int i=0;i<ladroes.size();i++){
+    		if(v[i]){
+        		v[i] = greedy4(cidade,itens,ladroes,distCasas,i,cap,itensPorCidade);
+        		if(v[i])
+        			coloqueiAlguem = true;
+    		}
+    	}
+    }
+
+    return fObj(ladroes, itens, cidade, distCasas);
+}
+
 void melhorGreedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, 
 	vector<vector<int>> &distCasas){
     
@@ -1564,6 +1684,21 @@ void melhorGreedy(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> 
     if(!temTempo())
     	return;
 
+    //Greedy 4
+    cidadeZero = cidade;
+    ladroesZero = ladroes;
+
+    greedy4(cidadeZero,itens,ladroesZero,distCasas);
+    
+    atualFObj = fObj(ladroesZero, itens, cidadeZero, distCasas);
+  
+    if(atualFObj > melhorFObj){
+        
+    	melhorFObj = atualFObj;
+    	cidadeOtima = cidadeZero;
+    	ladroesOtima = ladroesZero; 
+    }
+
     cidade = cidadeOtima;
     ladroes = ladroesOtima;
 }
@@ -1572,7 +1707,6 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
     long double valorFOBJ;
     int cont=0;
-    valorFOBJ= fObj( ladroes, itens, cidade, distCasas);
     
     while(true){
     	
@@ -1584,11 +1718,11 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
 
         if(moveUmaCidade(cidade,itens,ladroes,distCasas)) continue;
         
-        if(removeItem(cidade,itens,ladroes,distCasas)) continue;
-
         if(removeCidade(cidade,itens,ladroes,distCasas)) continue;
 
         if(addItemCidadeRota(cidade,itens,ladroes,distCasas)) continue;
+
+        if(removeItem(cidade,itens,ladroes,distCasas)) continue;
 
         if(addItemCidadeNaoRota(cidade,itens,ladroes,distCasas)) continue;
         
@@ -1597,34 +1731,7 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
         if(trocaCidadeRepetidaEntreLadroes(cidade,itens,ladroes,distCasas)) continue;
 
         break;
-    }
-
-  //   while(true){
-    	
-  //   	// if(!temTempo()){
-  //   	// 	return;
-  //   	// }
-
-  //       while(trocaCidadeEntreLadroes(cidade,itens,ladroes,distCasas)) continue;
-    	
-		// if(addItemCidadeRota(cidade,itens,ladroes,distCasas)) continue;
-
-  //       if(addItemCidadeNaoRota(cidade,itens,ladroes,distCasas)) continue;
-    	
-  //       if(removeItem(cidade,itens,ladroes,distCasas)) continue;
-
-  //       if(removeCidade(cidade,itens,ladroes,distCasas)) continue;
-		
-		// if(trocaDuasCidades(cidade,itens,ladroes,distCasas)) continue;
-
-		// if(moveUmaCidade(cidade,itens,ladroes,distCasas)) continue;
-
-		// if(trocaCidadeRepetidaEntreLadroes(cidade,itens,ladroes,distCasas)) continue;
-    	
-  //       break;
-  //   }
-    
-    valorFOBJ = fObj( ladroes, itens, cidade, distCasas);    
+    }   
 }
 
 void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas, bool reaproveitaSolucao){
@@ -1744,12 +1851,10 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
                         }
 
                     }
-                    // cout<<"Escolhi quais serao removidos.\n";
-
+              
                     if( novaMochila.size() == 0){ //Nao remove a cidade que tem so um item
                         goodshit.pop();
                         continue;
-
                     }
 
                     if( removidos.size()!=0){
@@ -1764,25 +1869,17 @@ void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
                                 cidade[qualCidade].visited[z] = false;
                             }
                         }
-                        // cout<<"Removi os itens a serem removidos\n.";
                     }
-                    
                 }
             }
         }
 
-        // cout<<"Antes de chamar a VND: "<<temp<<endl;
-
         VND(cidade,itens,ladroes,distCasas);
-        // cout<<"depois de chamar a VND: "<<temp2<<endl;
-
 
         double novaObj = fObj(ladroes, itens, cidade, distCasas);
     
-        // cout<<novaObj<<endl;
         if( novaObj > bestRouboValor){
 
-            // cout<<"ILS melhorou "<<novaObj-bestRouboValor<<endl;
             bestRouboValor = novaObj;
             bestRoubo = ladroes;
             bestCidade = cidade;
@@ -1829,7 +1926,9 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
 			greedy2(cidadeClone,itens,ladroesClone,distCasas, cont);
 		else if(qualGRASP ==2)
 			greedy3(cidadeClone,itens,ladroesClone,distCasas, cont);	
-
+		else if(qualGRASP==3)
+			greedy4(cidadeClone,itens,ladroesClone,distCasas);
+		
 		VND(cidadeClone,itens,ladroesClone,distCasas);
   
         long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas);
@@ -1839,6 +1938,9 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
             ladroesOtima = ladroesClone; 
             melhorFObj = atualFObj;
         }
+
+        if(qualGRASP == 3)
+        	break;
     }
 }
 
@@ -1858,16 +1960,18 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 	//-----------melhorGreedy----------------
     if(esc == 1){
     	melhorGreedy(cidade,itens,ladroes,distCasas);
-	    double grr = fObj(ladroes, itens, cidade, distCasas);  
-	    
-	    imprimeInstancia3(ladroes,cidade,0,grr);
+    	
+        double atual = fObj( ladroes, itens, cidade, distCasas);
+		
+		imprimeInstancia3(ladroes,cidade,0,atual);
 	}
 	
 	//-----------melhorGreedy + VND----------------
     if(esc ==2){
     	
     	melhorGreedy(cidade,itens,ladroes,distCasas);
-	    VND(cidade,itens,ladroes,distCasas);
+	    
+    	VND(cidade,itens,ladroes,distCasas);
   
 		double atual = fObj( ladroes, itens, cidade, distCasas);
 		
@@ -1981,12 +2085,12 @@ void contIter(){
 
     if(nItem < 1000){
         nIteracoes = 100;
-    }else if(nItem < 5000) {
-        nIteracoes =  60;
+    }else if(nItem < 2900) {
+        nIteracoes =  5;
     }else if(nItem < 10000){
-        nIteracoes = 40;
+        nIteracoes = 3;
     }else{
-        nIteracoes = 20;
+        nIteracoes = 1;
     }
 }
 
@@ -2019,7 +2123,10 @@ int main( int argc, char** argv ){
     start = time(NULL);
 
     contIter();
-				
+	
+	// Primeira ILS 40 / 60
+	// Segunda  ILS 30 / 40			
+    
     if(atoi(argv[1]) == 6 )
         mttp(cidade, itens, distCasas,saida,atoi(argv[2]));
     else
