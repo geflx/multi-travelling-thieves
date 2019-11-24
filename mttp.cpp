@@ -1496,14 +1496,18 @@ void Greedy3(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladr
     ladroes = ladroesOtima;
 }
 
-double greedy4(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
-    int qualMochileiro, int cap, int itensPorCidade){
+bool greedy4(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas,
+    int qualMochileiro, int cap, int itensPorCidade, int cont){
 
     int iteracao = 0;
     bool coloqueiAlguem = true;
     bool coloqueiAlguemAgora = false;
     
-    double melhorFObj = numeric_limits<double>::lowest();
+    double melhorFObj;
+    if(cont ==1)
+	    melhorFObj = numeric_limits<double>::lowest();
+	else
+		melhorFObj = fObj(ladroes,itens,cidade,distCasas,qualMochileiro);
 
     while(coloqueiAlguem || iteracao < itensPorCidade){
        
@@ -1601,12 +1605,14 @@ double greedy4(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &la
 
     bool coloqueiAlguem = true;
     int itensPorCidade = cidade[1].itemCasa.size();
+    int cont =0;
 
     while(coloqueiAlguem){
+    	cont++;
     	coloqueiAlguem = false;
     	for(int i=0;i<ladroes.size();i++){
     		if(v[i]){
-        		v[i] = greedy4(cidade,itens,ladroes,distCasas,i,cap,itensPorCidade);
+        		v[i] = greedy4(cidade,itens,ladroes,distCasas,i,cap,itensPorCidade,cont);
         		if(v[i])
         			coloqueiAlguem = true;
     		}
@@ -1734,7 +1740,8 @@ void VND(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes,
     }   
 }
 
-void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas, bool reaproveitaSolucao){
+void ILS(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroes, vector<vector<int>> &distCasas, 
+	bool reaproveitaSolucao){
 
     if( !reaproveitaSolucao){
 
@@ -1930,8 +1937,8 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
 			greedy4(cidadeClone,itens,ladroesClone,distCasas);
 		
 		VND(cidadeClone,itens,ladroesClone,distCasas);
-  
-        long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas);
+  		
+  		long double atualFObj = fObj(ladroesClone, itens, cidadeClone, distCasas);
        
         if( atualFObj > melhorFObj){
             cidadeOtima = cidadeClone;
@@ -1939,8 +1946,11 @@ void GRASP(vector<Casa> &cidade, vector<Item> &itens, vector<Mochileiro> &ladroe
             melhorFObj = atualFObj;
         }
 
-        if(qualGRASP == 3)
+        if(qualGRASP == 3){
+        	cidade = cidadeOtima;
+    		ladroes = ladroesOtima;
         	break;
+        }
     }
 }
 
@@ -1984,7 +1994,7 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 
 		melhorGreedy(cidade,itens,ladroes,distCasas);
 
-	    VND(cidade,itens,ladroes,distCasas);
+		VND(cidade,itens,ladroes,distCasas);
     	
     	bestVndIls = ladroes;
         vector<Casa> bestCidade = cidade;
@@ -2037,7 +2047,7 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCasas, ofstream& saida, int esc){
 
 	if(esc ==0){ //GRASP
-		for(int j=0;j<=2;j++){ // Para cada GRASP
+		//for(int j=0;j<=2;j++){ // Para cada GRASP
 		    for(int i=1;i<=5;i++){ // Para cada Mochileiro
 
 		    	int qual;
@@ -2053,10 +2063,10 @@ void mttp(vector<Casa> &cidade, vector<Item> &itens, vector<vector<int>> &distCa
 				cerr << "\nNúmero de Mochileiros: " << i << endl;
 
 				start = time(NULL);
-				mttp(cidade,itens,distCasas,i,saida,esc,j);
+				mttp(cidade,itens,distCasas,i,saida,esc,3);
 				limpeza(cidade);
 	    		saida << "\n";
-	    	}
+	    //	}
 	    }   
 	}else{ //ILS
 		for(int i=1;i<=5;i++){ // Para cada Mochileiro
