@@ -1,6 +1,6 @@
 # Multiple Traveling Thieves Problem (MTTP)
 
-Metaheuristics applied: XX & XX\
+Metaheuristics applied: GRASP, ILD and VND.
 Results: /*report after*/ 
 
 Official Contributors:\
