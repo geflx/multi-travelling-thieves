@@ -2,6 +2,7 @@
 ```bash
 $ g++ heuristics_name.cpp -O3 -fopenmp -o heurisitics_name.out
 $ heuristics_name.out < path/to/instance
+```
 
 # Multiple Traveling Thieves Problem (MTTP)
 
