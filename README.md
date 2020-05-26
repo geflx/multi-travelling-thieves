@@ -17,11 +17,7 @@ A capacidade de carregamento de itens é limitada pelo tamanho da mochila e uma 
 
 ## Objective Function
 
-<<<<<<< HEAD
-<img src="readme_attributes/obj_function"/>
-=======
 <img src="readme_attributes/obj_function.png" />
->>>>>>> 07bb57d6cc2760af968cbd971760a1508fa090f6
 
 ## Hipothetical Example
 
