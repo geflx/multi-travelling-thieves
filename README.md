@@ -1,3 +1,9 @@
+# Compiling & Running
+```bash
+$ g++ heuristics_name.cpp -O3 -fopenmp -o heurisitics_name.out
+$ heuristics_name.out < path/to/instance
+```
+
 # Multiple Traveling Thieves Problem (MTTP)
 
 Two heuristics (GRASP, ILS) were proposed to obtain near-optimal solutions for MTTP in reasonable time.
@@ -11,7 +17,11 @@ A capacidade de carregamento de itens é limitada pelo tamanho da mochila e uma 
 
 ## Objective Function
 
+<<<<<<< HEAD
 <img src="readme_attributes/obj_function"/>
+=======
+<img src="readme_attributes/obj_function.png" />
+>>>>>>> 07bb57d6cc2760af968cbd971760a1508fa090f6
 
 ## Hipothetical Example
 
