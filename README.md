@@ -1,35 +1,30 @@
-# Como compilar e executar
+# Compile and Execute:
 ```bash
 $ g++ main.cpp -O3 -o executable
 $ ./executable
 ```
 
-# Multiple Traveling Thieves Problem (MTTP)
+# Multiple Traveling Thieves Problem (MTTP):
 
-Two heuristics (GRASP, ILS) were proposed to obtain near-optimal solutions for MTTP in reasonable time.
+The MTTP problem is a variation with multiple agents of the Travelling Thief Problem (TTP), which is a combination of Knapsack Problem with Traveling Salesman Problem (NP-Hard). A GRASP and a Iterated Local Search meta-heuristics are implemented here obtain near-optimal solutions for MTTP in reasonable time.
 
-## Descrição do Problema
+## Short Description:
 
-O MTTP é a versão com múltiplos viajantes do problema Travelling Thief Problem (TTP), que por sua vez é dado pela combinação do Problema da Mochila como Problema do Caixeiro Viajante (NP-Difícil). 
+A set of N cities area disposed in a state, with distance d[i][j] between any two cities. Each item k positioned in a city i has a value p[i][k] and weight w[i][k]. The global knapsack capacity (you can see it as a truck) limits the amount of items and a tax "R" is paid for it for at each time unit. The velocity of a thief depends on its carried items.
 
-No MTTP, são dispostos um conjunto de cidades N = {1, ..., n}, uma matriz dij que representa a distância entre cada par de cidades i,j em N. Cada item k posicionado na cidade i ́e caracterizado por um valor pik e um peso wik.
-A capacidade de carregamento de itens é limitada pelo tamanho da mochila e uma taxa R é paga por cada unidade de tempo de seu aluguel. A velocidade de cada mochileiro depende da carga de seus itens carregados.
-
-## Função Objetivo
+## Objective Function:
 
 <img src="assets/obj_function.png" />
 
-## Resultados
-Os resultados obtidos foram superiores aos dos autores Chand e Wagner[1] em todas as instâncias testadas.
+## Conclusion:
+Considering the instances set, better results were found when compared to the literature ones.
 
-## Equipe
+## Team:
 
 * Gabriel Felix 
 * Natan Garcias 
 
-## Link para o relatório do trabalho
-https://docs.google.com/document/d/12KOUKZ8pxM4JJjnoLRJ5sdpROEqcG36Q_CGRSA0kFos/edit?usp=sharing\
-
-
-# Referências
+# References:
 [1] https://cs.adelaide.edu.au/~optlog/research/ttp/2016gecco-mttp.pdf
+
+
