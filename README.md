@@ -14,7 +14,7 @@ A set of N cities area disposed in a state, with distance d[i][j] between any tw
 
 ## Objective Function:
 
-<img src="assets/obj_function.png" width=600 height=100/>
+<img src="assets/obj_function.png" align=center width=700 height=100/>
 
 ## Conclusion:
 Considering the instances set, better results were found when compared to the literature ones.
