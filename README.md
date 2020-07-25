@@ -1,32 +1,44 @@
-# Compile and Execute:
+
+
+# Multiple Traveling Thieves Problem
+
+This problem is a variation of the _Travelling Thief Problem (TTP)_ with **multiple agents**. The _TTP_ is a combination of Knapsack Problem with Traveling Salesman Problem, which is proved to be **NP-Hard**. In a nutshell, a group of thieves rented a truck and must do their job in a set of cities, focusing on have the optimal profit from the robbery.  
+
+The following procedures were implemented in this work:
+- Greedy Randomized Adaptive Search Procedure (GRASP);
+- Iterated Local Search (ILS);
+- Variable Neighborhood Descent (VND).
+
+The main objective here is to obtain near-optimal solutions for the problem in a reasonable time.
+
+## How to run? :running:
 ```bash
-$ g++ main.cpp -O3 -o executable
-$ ./executable
+$ g++ main.cpp -O3 -o exec
+$ ./exec
 ```
+## Problem description :ledger:
 
-# Multiple Traveling Thieves Problem (MTTP):
+A set of _N_ cities are disposed in a state, with distance _d[i][j]_ between any two cities. Each item _k_ positioned in a city _i_ has value _p[i][k]_ and weight _w[i][k]_.  
+The global knapsack capacity limits the amount of items and a tax _R_ is paid for it at each time unit. The velocity _v_ of a thief depends on its carried items. 
 
-The MTTP problem is a variation with multiple agents of the Travelling Thief Problem (TTP), which is a combination of Knapsack Problem with Traveling Salesman Problem (NP-Hard). A GRASP and a Iterated Local Search meta-heuristics are implemented here obtain near-optimal solutions for MTTP in reasonable time.
-
-## Short Description:
-
-A set of N cities area disposed in a state, with distance d[i][j] between any two cities. Each item k positioned in a city i has a value p[i][k] and weight w[i][k]. The global knapsack capacity (you can see it as a truck) limits the amount of items and a tax "R" is paid for it at each time unit. The velocity of a thief depends on its carried items.
-
-## Objective Function:
+The **multi-objective function** is defined as follows:
 
 <p align="center">
-  <img src="assets/obj_function.png" align=center width=720 height=95/>
+  <img src="assets/obj_function.png" align=center width=620 height=85/>
 </p>
 
-## Conclusion:
-Considering the instances set, better results were found when compared to the literature ones.
 
-## Team:
+## Conclusions :mag_right:
+
+  This problem was one of the most challenging that the team encountered, due to it's **difficult** multi-objetive function, considerably large instances and amount of information. It was very fun to discuss methods to solve this problem, and even funnier to implement them.  
+Considering the set of instances, results shown that the obtained ones overcome the literature results.
+
+## Team :octocat:
 
 * Gabriel Felix 
-* Natan Garcias 
+* [Natan Garcias](https://github.com/NatanGarcias) 
 
-# References:
+## References :books:
 [1] https://cs.adelaide.edu.au/~optlog/research/ttp/2016gecco-mttp.pdf
 
 
