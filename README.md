@@ -19,7 +19,7 @@ $ ./exec
 ## Problem description :ledger:
 
 A set of _N_ cities are disposed in a state, with distance _d[i][j]_ between any two cities. Each item _k_ positioned in a city _i_ has value _p[i][k]_ and weight _w[i][k]_.  
-The global knapsack capacity limits the amount of items and a tax _R_ is paid for it at each time unit. The velocity _v_ of a thief depends on its carried items. 
+The global knapsack capacity limits the amount of items and a tax _R_ is paid for each time unit. The velocity _v_ of a thief depends on its carried items. 
 
 The **multi-objective function** is defined as follows:
 
@@ -30,7 +30,7 @@ The **multi-objective function** is defined as follows:
 
 ## Conclusions :mag_right:
 
-  This problem was one of the most challenging that the team encountered, due to it's **difficult** multi-objetive function, considerably large instances and amount of information. It was very fun to discuss methods to solve this problem, and even funnier to implement them.  
+  This problem was one of the most challenging that the team encountered, due to its **difficult** multi-objetive function, considerably large instances and amount of information. It was very fun to discuss methods to solve this problem, and even funnier to implement them.  
 Considering the set of instances, results shown that the obtained ones overcome the literature results.
 
 ## Team :octocat:
