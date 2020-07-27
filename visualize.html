@@ -1,0 +1,698 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+		integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"
+		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+		crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/p5.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/addons/p5.dom.min.js"></script>
+	<style>
+		canvas {
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+			margin-bottom: -6px;
+		}
+
+		html {
+			overflow-y: scroll;
+		}
+	</style>
+</head>
+
+<body>
+	<nav id="toolbar" class="navbar navbar-default">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button id="load-instance" class="btn btn-default navbar-btn" onclick="loadInstance()">Load
+					Instance</button>
+				<button id="load-solution" class="btn btn-default navbar-btn" onclick="loadSolution()" disabled>Load
+					Solution</button>
+			</div>
+		</div>
+	</nav>
+	<div class="col-md-9">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				Viewer
+			</div>
+			<div id="canvas" class="panel-body" style="padding: 0;"></div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<h2 style="margin-top: 0;">Info</h4>
+			<div class="panel-group" id="accordion" role="tablist">
+				<div class="panel panel-default">
+					<div class="panel-heading" role="tab" id="headingOne">
+						<h4 class="panel-title">
+							<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne"
+								aria-expanded="true" aria-controls="collapseOne">
+								Instance
+							</a>
+						</h4>
+					</div>
+					<div id="collapseOne" class="panel-collapse collapse in" role="tabpanel"
+						aria-labelledby="headingOne">
+						<div id="info-instance" class="panel-body">
+							nothing to show
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading" role="tab" id="headingTwo">
+						<h4 class="panel-title">
+							<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
+								href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+								Solution
+							</a>
+						</h4>
+					</div>
+					<div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+						<div id="info-solution" class="panel-body">
+							nothing to show
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading" role="tab" id="headingThree">
+						<h4 class="panel-title">
+							<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
+								href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+								Selected
+							</a>
+						</h4>
+					</div>
+					<div id="collapseThree" class="panel-collapse collapse" role="tabpanel"
+						aria-labelledby="headingThree">
+						<div id="info-selected" class="panel-body">
+							nothing to show
+						</div>
+					</div>
+				</div>
+			</div>
+	</div>
+	<script>
+		const NODE_SIZE = 10;
+
+		var wWidth, wHeight;
+		var instance = false;
+		var solution = false;
+		var selected = false;
+
+		//LOADING
+		function loadFile(callback) {
+			var fileC = document.createElement('input');
+			fileC.type = 'file'
+
+			fileC.onchange = function () {
+				var reader = new FileReader();
+				reader.readAsText(fileC.files[0], "UTF-8");
+
+				reader.onload = function (e) {
+					callback(e.target.result.replace(/[\t]/g, ' ').replace(/[ ]+/g, ' '));
+				};
+				reader.onerror = function (e) {
+					alert('error loading file');
+					console.error(e);
+				};
+			}
+
+			fileC.click();
+		}
+
+		function loadInstance() {
+			reset();
+
+			loadFile(function (file) {
+				instance = new Instance(file);
+				document.title = instance.name;
+
+				$('#info-instance').empty();
+				var table = $('<table class="table"><tbody></tbody></table>');
+
+				table.find('tbody').append($('<tr><td>name</td><td>' + instance.name + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>type</td><td>' + instance.type + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>nodes</td><td>' + instance.nodes.length + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>items</td><td>' + instance.items.length + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>capacity</td><td>' + instance.capacity + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>renting ratio</td><td>' + instance.rentingRatio + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>min speed</td><td>' + instance.min_speed + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>max speed</td><td>' + instance.max_speed + '</td></tr>'));
+
+				$('#info-instance').append(table);
+				$('#load-solution').prop('disabled', false);
+				redraw();
+			});
+		}
+
+		function loadSolution() {
+			loadFile(function (file) {
+				solution = new Solution(file);
+
+				$('#info-solution').empty();
+				var table = $('<table class="table"><tbody></tbody></table>');
+
+				table.find('tbody').append($('<tr><td>thieves</td><td>' + solution.thieves.length + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>profit</td><td>' + solution.profit + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>renting</td><td>' + solution.renting.toFixed(2) + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>value</td><td>' + solution.value.toFixed(2) + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>weight</td><td>' + solution.weight + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>time</td><td>' + solution.time.toFixed(2) + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>valid</td><td>' + solution.valid + '</td></tr>'));
+
+				$('#info-solution').append(table);
+
+				for (t in solution.thieves) {
+					var thief = solution.thieves[t];
+
+					var subtable = $('<h4>thief ' + t + '</h4><table class="table"><tbody></tbody></table>');
+
+					subtable.find('tbody').append($('<tr><td>profit</td><td>' + thief.profit + '</td></tr>'));
+					subtable.find('tbody').append($('<tr><td>renting</td><td>' + thief.renting.toFixed(2) + '</td></tr>'));
+					subtable.find('tbody').append($('<tr><td>value</td><td>' + thief.value.toFixed(2) + '</td></tr>'));
+					subtable.find('tbody').append($('<tr><td>weight</td><td>' + thief.weight + '</td></tr>'));
+					subtable.find('tbody').append($('<tr><td>time</td><td>' + thief.time.toFixed(2) + '</td></tr>'));
+					subtable.find('tbody').append($('<tr><td>valid</td><td>' + thief.valid + '</td></tr>'));
+
+					$('#info-solution').append(subtable);
+				}
+
+				redraw();
+			});
+		}
+
+		function reset() {
+			instance = false;
+			solution = false;
+			selected = false;
+			$('#info-instance').empty().text('nothing to show');
+			$('#info-solution').empty().text('nothing to show');
+			$('#info-selected').empty().text('nothing to show');
+			$('#load-solution').prop('disabled', true);
+		}
+
+		//VIEW
+		thievesColor = ['#8e24aa', '#43a047', '#3949ab', '#039be5', '#fb8c00', '#6d4c41']
+
+		function setup() {
+			wWidth = $('#canvas').width();
+			wHeight = window.innerHeight - 134;
+
+			var canvas = createCanvas(wWidth, wHeight);
+			canvas.parent('canvas');
+			noLoop();
+		}
+
+		function draw() {
+			background(225);
+
+			color(0);
+
+			if (instance) {
+				if (solution) {
+
+					for (t in solution.thieves) {
+						stroke(thievesColor[t % thievesColor.length]);
+						fill(thievesColor[t % thievesColor.length]);
+						var thief = solution.thieves[t];
+
+						var last = instance.getStart();
+						thief.route.forEach(function (n) {
+							var curr = instance.getNodeById(n);
+							arrow(last, curr, thief.data[n].weightBefore);
+							last = curr;
+						});
+
+						arrow(last, instance.getEnd(), thief.data[instance.getEnd().id].weightBefore);
+					}
+				}
+
+
+				instance.nodes.forEach(function (n) {
+					stroke(0);
+					fill(225);
+					if (n.id == instance.getStart().id)
+						stroke(255, 0, 255);
+					if (n.id == instance.getEnd().id)
+						stroke(255, 0, 255);
+					if (solution) {
+						if (solution.containsNode(n.id))
+							fill(255);
+					}
+
+					ellipse(mapX(n.x), mapY(n.y), NODE_SIZE, NODE_SIZE);
+				});
+
+				stroke(0);
+
+				if (selected) {
+					noStroke();
+					fill(225, 225, 225, 225);
+					rect(0, 0, wWidth, wHeight);
+					stroke(0);
+
+					fill(0);
+					if (solution) {
+						for (t in solution.thieves) {
+							var thief = solution.thieves[t];
+							if (thief.containsNode(selected.id)) {
+								stroke(thievesColor[t % thievesColor.length]);
+								fill(thievesColor[t % thievesColor.length]);
+
+								var data = thief.data[selected.id];
+								var before = thief.nodeBefore(selected.id);
+								var after = thief.nodeAfter(selected.id);
+
+								if (before)
+									arrow(instance.getNodeById(before), selected, data.weightBefore);
+								if (after)
+									arrow(selected, instance.getNodeById(after), data.weightAfter);
+							}
+						}
+					}
+
+					fill(255, 0, 0);
+					ellipse(mapX(selected.x), mapY(selected.y), NODE_SIZE, NODE_SIZE);
+				}
+			}
+
+			function arrow(from, to, weight) {
+				var f = { x: mapX(from.x), y: mapY(from.y) };
+				var t = { x: mapX(to.x), y: mapY(to.y) };
+				var angle = Math.atan2(f.x - t.x, f.y - t.y);
+
+				var neb = {
+					x: Math.sin(angle) * (NODE_SIZE / 2) + t.x,
+					y: Math.cos(angle) * (NODE_SIZE / 2) + t.y
+				};
+
+				var c1 = {
+					x: Math.sin(angle + (40 * PI / 180)) * 8 + neb.x,
+					y: Math.cos(angle + (40 * PI / 180)) * 8 + neb.y
+				};
+
+				var c2 = {
+					x: Math.sin(angle - (40 * PI / 180)) * 8 + neb.x,
+					y: Math.cos(angle - (40 * PI / 180)) * 8 + neb.y
+				};
+
+
+				strokeWeight(map(weight, 0, instance.capacity, 1, 5));
+				line(f.x, f.y, neb.x, neb.y);
+				strokeWeight(1);
+
+				triangle(neb.x, neb.y, c1.x, c1.y, c2.x, c2.y);
+			}
+		}
+
+		function mouseClicked(e) {
+			if (e.target.id != 'defaultCanvas0')
+				return true;
+
+			selected = false;
+
+			for (i in instance.nodes) {
+				var n = instance.nodes[i];
+				if (distance(mouseX, mouseY, mapX(n.x), mapY(n.y)) <= (NODE_SIZE / 2)) {
+					selected = n;
+					break;
+				}
+			}
+
+			if (selected) {
+				$('#info-selected').empty();
+
+				//Node Info
+				$('#info-selected').append($('<h4>node</h4>'));
+				var table = $('<table class="table"><tbody></tbody></table>');
+				table.find('tbody').append($('<tr><td>id</td><td>' + selected.id + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>x</td><td>' + selected.x + '</td></tr>'));
+				table.find('tbody').append($('<tr><td>y</td><td>' + selected.y + '</td></tr>'));
+				$('#info-selected').append(table);
+
+				//Items Info
+				$('#info-selected').append($('<h4>items</h4>'));
+				var table = $('<table class="table"><thead><tr><th>id</th><th>profit</th><th>weight</th><th>collected</th></tr></thead><tbody></tbody></table>');
+				instance.getItemsByNode(selected.id).forEach(function (i) {
+					var collected = false;
+					if (solution) {
+						collected = solution.getItems().indexOf(i.id) >= 0;
+					}
+					table.find('tbody').append($('<tr><td>' + i.id + '</td><td>' + i.profit + '</td><td>' + i.weight + '</td><td>' + collected + '</td></tr>'));
+				});
+				$('#info-selected').append(table);
+
+				//Solution Info
+				if (solution) {
+					for (t in solution.thieves) {
+						var thief = solution.thieves[t];
+						if (thief.containsNode(selected.id)) {
+							var item = thief.data[selected.id];
+
+							$('#info-selected').append($('<h4>thief ' + t + '</h4>'));
+							var table = $('<table class="table"><tbody></tbody></table>');
+							table.find('tbody').append($('<tr><td>time until here</td><td>' + item.cumTime.toFixed(2) + '</td></tr>'));
+							table.find('tbody').append($('<tr><td>profit before</td><td>' + item.profitBefore + '</td></tr>'));
+							table.find('tbody').append($('<tr><td>profit here</td><td>' + item.profit + '</td></tr>'));
+							table.find('tbody').append($('<tr><td>profit after</td><td>' + item.profitAfter + '</td></tr>'));
+							table.find('tbody').append($('<tr><td>weight before</td><td>' + item.weightBefore + '</td></tr>'));
+							table.find('tbody').append($('<tr><td>weight here</td><td>' + item.weight + '</td></tr>'));
+							table.find('tbody').append($('<tr><td>weight after</td><td>' + item.weightAfter + '</td></tr>'));
+							table.find('tbody').append($('<tr><td>speed before</td><td>' + item.speedBefore.toFixed(2) + '</td></tr>'));
+							table.find('tbody').append($('<tr><td>speed after</td><td>' + item.speedAfter.toFixed(2) + '</td></tr>'));
+							$('#info-selected').append(table);
+						}
+					}
+				}
+
+			} else {
+				$('#info-selected').empty().text('nothing to show');
+			}
+
+			redraw();
+		}
+
+		//CALCULATIONS
+		function mapX(value) {
+			return map(value, instance.minX, instance.maxX, 20, wWidth - 20);
+		}
+
+		function mapY(value) {
+			return map(value, instance.maxY, instance.minY, 20, wHeight - 20);
+		}
+
+		function unMapX(value) {
+			return map(value, 20, wWidth - 20, instance.minX, instance.maxX);
+		}
+
+		function unMapY(value) {
+			return map(value, 20, wHeight - 20, instance.maxY, instance.minY);
+		}
+
+		function map(value, minFrom, maxFrom, minTo, maxTo) {
+			return ((value - minFrom) / (maxFrom - minFrom) * (maxTo - minTo)) + minTo;
+		}
+
+		function distance(x1, y1, x2, y2) {
+			return Math.ceil(Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)));
+		}
+
+		//MODEL
+		function Node(id, x, y) {
+			this.id = id;
+			this.x = x;
+			this.y = y;
+
+			this.dist = function (that) {
+				return distance(this.x, this.y, that.x, that.y);
+			}
+
+			return this;
+		}
+
+		function Item(id, profit, weight, node_id) {
+			this.id = id;
+			this.profit = profit;
+			this.weight = weight;
+			this.node_id = node_id;
+
+			return this;
+		}
+
+		function Instance(data) {
+			this.name = "";
+			this.type = "";
+			this.capacity = 0;
+			this.rentingRatio = 0;
+			this.min_speed = 0;
+			this.max_speed = 0;
+			this.nodes = [];
+			this.items = [];
+
+			this.minX;
+			this.maxX;
+			this.minY;
+			this.maxY;
+
+			this.getNodeById = function (i) {
+				return this.nodes[i - 1];
+			}
+
+			this.getItemById = function (i) {
+				return this.items[i - 1];
+			}
+
+			this.getItemsByNode = function (id) {
+				return this.items.filter(function (a) { return a.node_id == id });
+			}
+
+			this.addNode = function (x, y) {
+				this.nodes.push(new Node(this.nodes.length, x, y));
+			}
+
+			this.getSpeed = function (weight) {
+				return Math.min(this.max_speed, Math.max(this.min_speed, (1 - (weight / this.capacity)) * (this.max_speed - this.min_speed) + this.min_speed));
+			}
+
+			this.getStart = function () {
+				return this.nodes[0];
+			}
+
+			this.getEnd = function () {
+				return this.nodes[0];
+			}
+
+			this._load = function (data) {
+				var lines = data.split('\n');
+
+				function read(line) {
+					return lines[line].split(':')[1].trim();
+				}
+
+				this.name = read(0);
+				this.type = read(1);
+
+				var nodeCount = parseInt(read(2));
+				var itemCount = parseInt(read(3));
+
+				this.capacity = parseFloat(read(4));
+				this.min_speed = parseFloat(read(5));
+				this.max_speed = parseFloat(read(6));
+				this.rentingRatio = parseFloat(read(7));
+
+				this.nodes = lines.slice(10, nodeCount + 10).map(function (n) {
+					var parts = n.split(' ');
+					return new Node(
+						parseInt(parts[0]),
+						parseFloat(parts[1]),
+						parseFloat(parts[2])
+					);
+				});
+
+				this.items = lines.slice(10 + nodeCount + 1, 10 + nodeCount + 1 + itemCount).map(function (n) {
+					var parts = n.split(' ');
+					return new Item(
+						parseInt(parts[0]),
+						parseFloat(parts[1]),
+						parseFloat(parts[2]),
+						parseInt(parts[3])
+					);
+				});
+
+				this.minX = this.nodes.map(function (n) { return n.x }).reduce(function (a, b) { return Math.min(a, b) });
+				this.maxX = this.nodes.map(function (n) { return n.x }).reduce(function (a, b) { return Math.max(a, b) });
+				this.minY = this.nodes.map(function (n) { return n.y }).reduce(function (a, b) { return Math.min(a, b) });
+				this.maxY = this.nodes.map(function (n) { return n.y }).reduce(function (a, b) { return Math.max(a, b) });
+			}
+
+			this._load(data)
+
+			return this;
+		}
+
+		function Thief(id, route, items) {
+			this.id = id;
+			this.route = route;
+			this.items = items;
+
+			this.renting = 0;
+			this.profit = 0;
+			this.value = 0;
+			this.weight = 0;
+			this.time = 0;
+			this.valid = true;
+
+			this.data = [];
+
+			this.getItemsFrom = function (id) {
+				return this.items.filter(function (d) {
+					return instance.getItemById(d).node_id == id;
+				});
+			}
+
+			this.containsNode = function (id) {
+				return (id == instance.getStart().id) || (id == instance.getEnd().id) || (this.route.indexOf(id) >= 0);
+			}
+
+			this.nodeBefore = function (id) {
+				if (id == instance.getEnd().id) return this.route[this.route.length - 1];
+				if (id == instance.getStart().id) return false;
+				var index = this.route.indexOf(id);
+				if (index == 0) return instance.getStart().id;
+				if (index > 0) return this.route[index - 1];
+				return false;
+			}
+
+			this.nodeAfter = function (id) {
+				if (id == instance.getStart().id) return this.route[0];
+				if (id == instance.getEnd().id) return false;
+				var index = this.route.indexOf(id);
+				if (index == this.route.length - 1) return instance.getEnd().id;
+				if (index >= 0) return this.route[index + 1];
+				return false;
+			}
+
+			this.calc = function () {
+				this.profit = 0;
+				this.weight = 0;
+				this.time = 0;
+				this.valid = true;
+				this.data = [];
+
+				var last = instance.getStart();
+
+				this.data[last.id] = {
+					node: last,
+					items: [],
+					cumTime: 0,
+					profitBefore: 0,
+					profit: 0,
+					profitAfter: 0,
+					weightBefore: 0,
+					weight: 0,
+					weightAfter: 0,
+					speedBefore: instance.getSpeed(0),
+					speedAfter: instance.getSpeed(0)
+				};
+
+				for (i in this.route) {
+					var curr = instance.getNodeById(this.route[i]);
+					var dist = curr.dist(last);
+					var items = this.getItemsFrom(curr.id).map(function (a) { return instance.getItemById(a); });
+					var profit = items.map(a => a.profit).reduce((a, b) => a + b, 0);
+					var weight = items.map(a => a.weight).reduce((a, b) => a + b, 0);
+
+					this.time += dist / instance.getSpeed(this.weight);
+
+					this.data[curr.id] = {
+						node: curr,
+						items: items,
+						cumTime: this.time,
+						profitBefore: this.profit,
+						profit: profit,
+						profitAfter: this.profit + profit,
+						weightBefore: this.weight,
+						weight: weight,
+						weightAfter: this.weight + weight,
+						speedBefore: instance.getSpeed(this.weight),
+						speedAfter: instance.getSpeed(this.weight + weight)
+					};
+
+					this.profit += profit;
+					this.weight += weight;
+					last = curr;
+				}
+
+				var curr = instance.getEnd();
+				this.time += last.dist(curr) / instance.getSpeed(this.weight);
+				this.data[curr.id] = {
+					node: curr,
+					items: [],
+					cumTime: this.time,
+					profitBefore: this.profit,
+					profit: 0,
+					profitAfter: this.profit,
+					weightBefore: this.weight,
+					weight: 0,
+					weightAfter: this.weight,
+					speedBefore: instance.getSpeed(this.weight),
+					speedAfter: instance.getSpeed(this.weight)
+				};
+
+				this.renting = instance.rentingRatio * this.time;
+				this.value = this.profit - this.renting;
+
+				if (this.weight > instance.capacity)
+					valid = false;
+				else if (new Set(this.items).size != this.items.length) {
+					valid = false;
+				} else if (new Set(this.route).size != this.route.length) {
+					valid = false;
+				}
+			}
+
+			this.calc();
+
+			return this;
+		}
+
+		function Solution(data) {
+
+			this.thieves = [];
+			this.profit = 0;
+			this.renting = 0;
+			this.value = 0;
+			this.weight = 0;
+			this.time = 0;
+			this.valid = true;
+
+			this.containsNode = function (id) {
+				return this.thieves.map(t => t.containsNode(id)).reduce((a, b) => a || b, false);
+			}
+
+			this.getItems = function () {
+				return this.thieves.map(t => t.items).reduce((a, b) => a.concat(b), []);
+			}
+
+			this._load = function (data) {
+				var lines = data.trim().replace(/[\[\]]/g, '').split('\n');
+
+				if (lines.length % 2 !== 0) {
+					alert('invalid input format, it was expected a pair number of lines');
+					return;
+				}
+
+				for (var id = 0, line = 0; line < lines.length; id++ , line = line + 2) {
+					var route = lines[line].split(',').map(a => parseInt(a));
+					var items = lines[line + 1].split(',').map(a => parseInt(a));
+					this.thieves.push(new Thief(id, route, items));
+				}
+
+				this.profit = this.thieves.map(t => t.profit).reduce((a, b) => a + b, 0);
+				this.renting = this.thieves.map(t => t.renting).reduce((a, b) => a + b, 0);
+				this.value = this.thieves.map(t => t.value).reduce((a, b) => a + b, 0);
+				this.weight = this.thieves.map(t => t.weight).reduce((a, b) => a + b, 0);
+				this.time = this.thieves.map(t => t.time).reduce((a, b) => a + b, 0);
+				this.valid = this.thieves.map(t => t.valid).reduce((a, b) => a && b, true);
+
+				this.valid = this.valid && (this.getItems().length === new Set(this.getItems()).size);
+			}
+
+			this._load(data);
+
+			return this;
+		}
+
+	</script>
+</body>
+
+</html>
